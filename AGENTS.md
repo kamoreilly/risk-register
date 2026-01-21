@@ -15,7 +15,7 @@ Risk Register - A full-stack risk management application with a Go backend and R
 ### Root Level
 ```bash
 make all              # Install all dependencies (Go + Bun)
-make dev              # Start backend + web + native dev servers
+make dev              # Start backend + web dev servers
 make dev-backend      # Start backend only with hot reload
 make dev-frontend     # Start frontend only
 make stop             # Stop all dev servers
@@ -48,7 +48,6 @@ bun install           # Install dependencies
 bun run build         # Build all apps/packages
 bun run dev           # Start dev servers
 bun run dev:web       # Start web app only
-bun run dev:native    # Start native (Expo) app only
 bun run check-types   # Type-check all packages
 ```
 

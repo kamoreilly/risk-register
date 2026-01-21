@@ -9,7 +9,7 @@
   "orm": "none",
   "backend": "none",
   "runtime": "none",
-  "frontend": ["tanstack-start", "native-uniwind"],
+  "frontend": ["tanstack-start"],
   "addons": ["turborepo"],
   "examples": [],
   "auth": "none",

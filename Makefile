@@ -1,4 +1,4 @@
-.PHONY: all dev dev-all dev-native stop dev-backend dev-frontend docker-run docker-down clean install-deps git-init help
+.PHONY: all dev dev-all stop dev-backend dev-frontend docker-run docker-down clean install-deps git-init help
 
 all: install-deps
 
@@ -14,15 +14,10 @@ install-deps:
 stop:
 	@bash -eu -o pipefail -c 'echo "Stopping dev services (best-effort)..."; ports=(8080 3001 5173 8081); for port in "$${ports[@]}"; do pids="$$(lsof -ti :$$port 2>/dev/null || true)"; if [ -n "$$pids" ]; then echo "- stopping :$$port ($$pids)"; kill -TERM $$pids 2>/dev/null || true; sleep 1; kill -KILL $$pids 2>/dev/null || true; fi; done; echo "Stop complete."'
 
-# Stop any running services first, then start backend + web + native.
-# Native (Expo) runs in the foreground to keep the interactive TTY.
+# Stop any running services first, then start backend + web.
 # On Ctrl+C / termination, force shut down all servers.
 dev: stop
-	@bash -eu -o pipefail -c 'root_dir="$$(pwd)"; echo "Starting backend + web + native..."; (cd "$$root_dir/backend" && if ! command -v air >/dev/null; then go install github.com/air-verse/air@latest; fi && exec air) & backend_pid=$$!; (cd "$$root_dir/frontend/apps/web" && exec bun run dev) & web_pid=$$!; cleanup(){ echo ""; echo "Shutting down dev servers..."; pids="$$backend_pid $$web_pid"; kill -TERM $$pids 2>/dev/null || true; for i in 1 2 3 4 5; do alive=""; for pid in $$pids; do if kill -0 $$pid 2>/dev/null; then alive="$$alive $$pid"; fi; done; [ -z "$$alive" ] && break; sleep 1; done; for pid in $$pids; do if kill -0 $$pid 2>/dev/null; then kill -KILL $$pid 2>/dev/null || true; fi; done; $(MAKE) -C "$$root_dir" -s stop || true; }; trap cleanup INT TERM EXIT; echo "Backend PID: $$backend_pid"; echo "Web PID: $$web_pid"; cd "$$root_dir/frontend/apps/native" && bun run dev'
-
-# Start native (Expo) only (stops existing processes; cleans up on exit).
-dev-native: stop
-	@bash -eu -o pipefail -c 'root_dir="$$(pwd)"; cleanup(){ echo ""; echo "Shutting down native..."; $(MAKE) -C "$$root_dir" -s stop || true; }; trap cleanup INT TERM EXIT; echo "Starting native (Expo)..."; cd "$$root_dir/frontend/apps/native" && bun run dev'
+	@bash -eu -o pipefail -c 'root_dir="$$(pwd)"; echo "Starting backend + web..."; (cd "$$root_dir/backend" && if ! command -v air >/dev/null; then go install github.com/air-verse/air@latest; fi && exec air) & backend_pid=$$!; (cd "$$root_dir/frontend/apps/web" && exec bun run dev) & web_pid=$$!; cleanup(){ echo ""; echo "Shutting down dev servers..."; pids="$$backend_pid $$web_pid"; kill -TERM $$pids 2>/dev/null || true; for i in 1 2 3 4 5; do alive=""; for pid in $$pids; do if kill -0 $$pid 2>/dev/null; then alive="$$alive $$pid"; fi; done; [ -z "$$alive" ] && break; sleep 1; done; for pid in $$pids; do if kill -0 $$pid 2>/dev/null; then kill -KILL $$pid 2>/dev/null || true; fi; done; $(MAKE) -C "$$root_dir" -s stop || true; }; trap cleanup INT TERM EXIT; echo "Backend PID: $$backend_pid"; echo "Web PID: $$web_pid"; wait'
 
 # Alias for `dev` (kept for convenience).
 dev-all: dev
@@ -69,13 +64,11 @@ check-air:
 help:
 	@echo "Available targets:"
 	@echo "  make all              - Install all dependencies"
-	@echo "  make dev              - Start backend + web + native (stops existing processes; cleans up on exit)"
-	@echo "  make dev-native       - Start native (Expo) only (stops existing processes; cleans up on exit)"
+	@echo "  make dev              - Start backend + web (stops existing processes; cleans up on exit)"
 	@echo "  make dev-all          - Alias for make dev"
 	@echo "  make stop             - Stop dev servers (kills known dev ports)"
 	@echo "  make dev-backend      - Start backend only with hot reload"
-	@echo "  make dev-frontend     - Start frontend only"
-	@echo "  make docker-run       - Start PostgreSQL database"
+	@echo "  make dev-frontend     - Start frontend only""
 	@echo "  make docker-down      - Stop PostgreSQL database"
 	@echo "  make clean            - Clean build artifacts"
 	@echo "  make git-init         - Initialize git repository"
