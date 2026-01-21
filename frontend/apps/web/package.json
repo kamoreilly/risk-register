@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",
+    "@frontend/ui": "workspace:*",
     "@frontend/env": "workspace:*",
     "@tailwindcss/vite": "^4.1.8",
     "@tanstack/react-form": "^1.23.5",
