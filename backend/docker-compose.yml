@@ -1,0 +1,15 @@
+services:
+  risk_register_db:
+    image: postgres:latest
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${RISK_REGISTER_DB_DATABASE}
+      POSTGRES_USER: ${RISK_REGISTER_DB_USERNAME}
+      POSTGRES_PASSWORD: ${RISK_REGISTER_DB_PASSWORD}
+    ports:
+      - "${RISK_REGISTER_DB_PORT}:5432"
+    volumes:
+      - risk_register_volume:/var/lib/postgresql/data
+
+volumes:
+  risk_register_volume:
