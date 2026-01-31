@@ -121,7 +121,7 @@ function SidebarMenuButton({
     className,
   );
 
-  if (asChild && React.isValidElement(children)) {
+  if (asChild && React.isValidElement<{ className?: string }>(children)) {
     return React.cloneElement(children, {
       className: cn(baseClassName, children.props.className),
     });
