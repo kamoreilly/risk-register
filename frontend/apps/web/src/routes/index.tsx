@@ -149,6 +149,34 @@ function HomeComponent() {
                 </div>
               </div>
 
+              {/* Frameworks Strip */}
+              <div className="border-y bg-muted/30">
+                <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+                  <p className="mb-4 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Compatible with industry standards
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+                    {[
+                      { name: "ISO 27001", variant: "default" as const },
+                      { name: "NIST CSF", variant: "default" as const },
+                      { name: "SOC 2", variant: "default" as const },
+                      { name: "HIPAA", variant: "default" as const },
+                      { name: "GDPR", variant: "default" as const },
+                      { name: "PCI DSS", variant: "default" as const },
+                      { name: "CIS Controls", variant: "default" as const },
+                      { name: "COBIT", variant: "default" as const },
+                    ].map((framework) => (
+                      <div
+                        key={framework.name}
+                        className="inline-flex items-center rounded-lg border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-sm transition-colors hover:border-primary/50 hover:text-foreground"
+                      >
+                        {framework.name}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         </section>
