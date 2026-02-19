@@ -29,6 +29,18 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	// Protected routes
 	protected := s.App.Group("/api/v1", middleware.AuthMiddleware)
 	protected.Get("/auth/me", s.auth.Me)
+
+	// Category routes (public read)
+	categories := protected.Group("/categories")
+	categories.Get("/", s.categoryHandler.List)
+
+	// Risk routes
+	risks := protected.Group("/risks")
+	risks.Get("/", s.riskHandler.List)
+	risks.Post("/", s.riskHandler.Create)
+	risks.Get("/:id", s.riskHandler.Get)
+	risks.Put("/:id", s.riskHandler.Update)
+	risks.Delete("/:id", s.riskHandler.Delete)
 }
 
 func (s *FiberServer) HelloWorldHandler(c *fiber.Ctx) error {

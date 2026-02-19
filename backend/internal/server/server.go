@@ -13,26 +13,36 @@ import (
 
 type FiberServer struct {
 	*fiber.App
-	db    database.Service
-	rawDB *sql.DB
-	users database.UserRepository
-	auth  *handlers.AuthHandler
+	db              database.Service
+	rawDB           *sql.DB
+	users           database.UserRepository
+	risks           database.RiskRepository
+	categories      database.CategoryRepository
+	auth            *handlers.AuthHandler
+	riskHandler     *handlers.RiskHandler
+	categoryHandler *handlers.CategoryHandler
 }
 
 func New() *FiberServer {
 	db := database.New()
 	rawDB := getRawDB()
 	users := database.NewUserRepository(rawDB)
+	risks := database.NewRiskRepository(rawDB)
+	categories := database.NewCategoryRepository(rawDB)
 
 	server := &FiberServer{
 		App: fiber.New(fiber.Config{
 			ServerHeader: "risk-register",
 			AppName:      "Risk Register API",
 		}),
-		db:    db,
-		rawDB: rawDB,
-		users: users,
-		auth:  handlers.NewAuthHandler(users),
+		db:              db,
+		rawDB:           rawDB,
+		users:           users,
+		risks:           risks,
+		categories:      categories,
+		auth:            handlers.NewAuthHandler(users),
+		riskHandler:     handlers.NewRiskHandler(risks, categories),
+		categoryHandler: handlers.NewCategoryHandler(categories),
 	}
 
 	return server
