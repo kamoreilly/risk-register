@@ -1,3 +1,5 @@
+// Package migrations provides database migration functionality using golang-migrate.
+// Migration files are embedded in the binary for deployment simplicity.
 package migrations
 
 import (
@@ -12,6 +14,9 @@ import (
 //go:embed all:migrations
 var migrationsFS embed.FS
 
+// RunMigrations executes all pending database migrations against the provided
+// database URL. It returns nil if migrations succeed or if there are no new
+// migrations to apply.
 func RunMigrations(databaseURL string) error {
 	source, err := iofs.New(migrationsFS, "migrations")
 	if err != nil {
@@ -22,6 +27,7 @@ func RunMigrations(databaseURL string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create migrate instance: %w", err)
 	}
+	defer m.Close()
 
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		return fmt.Errorf("failed to run migrations: %w", err)
