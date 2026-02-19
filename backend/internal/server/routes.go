@@ -41,6 +41,12 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	risks.Get("/:id", s.riskHandler.Get)
 	risks.Put("/:id", s.riskHandler.Update)
 	risks.Delete("/:id", s.riskHandler.Delete)
+
+	// Nested mitigation routes under a specific risk
+	risks.Get("/:riskId/mitigations", s.mitigationHandler.List)
+	risks.Post("/:riskId/mitigations", s.mitigationHandler.Create)
+	risks.Put("/:riskId/mitigations/:id", s.mitigationHandler.Update)
+	risks.Delete("/:riskId/mitigations/:id", s.mitigationHandler.Delete)
 }
 
 func (s *FiberServer) HelloWorldHandler(c *fiber.Ctx) error {

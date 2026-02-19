@@ -13,14 +13,16 @@ import (
 
 type FiberServer struct {
 	*fiber.App
-	db              database.Service
-	rawDB           *sql.DB
-	users           database.UserRepository
-	risks           database.RiskRepository
-	categories      database.CategoryRepository
-	auth            *handlers.AuthHandler
-	riskHandler     *handlers.RiskHandler
-	categoryHandler *handlers.CategoryHandler
+	db               database.Service
+	rawDB            *sql.DB
+	users            database.UserRepository
+	risks            database.RiskRepository
+	categories       database.CategoryRepository
+	mitigations      database.MitigationRepository
+	auth             *handlers.AuthHandler
+	riskHandler      *handlers.RiskHandler
+	categoryHandler  *handlers.CategoryHandler
+	mitigationHandler *handlers.MitigationHandler
 }
 
 func New() *FiberServer {
@@ -29,20 +31,23 @@ func New() *FiberServer {
 	users := database.NewUserRepository(rawDB)
 	risks := database.NewRiskRepository(rawDB)
 	categories := database.NewCategoryRepository(rawDB)
+	mitigations := database.NewMitigationRepository(rawDB)
 
 	server := &FiberServer{
 		App: fiber.New(fiber.Config{
 			ServerHeader: "risk-register",
 			AppName:      "Risk Register API",
 		}),
-		db:              db,
-		rawDB:           rawDB,
-		users:           users,
-		risks:           risks,
-		categories:      categories,
-		auth:            handlers.NewAuthHandler(users),
-		riskHandler:     handlers.NewRiskHandler(risks, categories),
-		categoryHandler: handlers.NewCategoryHandler(categories),
+		db:               db,
+		rawDB:            rawDB,
+		users:            users,
+		risks:            risks,
+		categories:       categories,
+		mitigations:      mitigations,
+		auth:             handlers.NewAuthHandler(users),
+		riskHandler:      handlers.NewRiskHandler(risks, categories),
+		categoryHandler:  handlers.NewCategoryHandler(categories),
+		mitigationHandler: handlers.NewMitigationHandler(mitigations),
 	}
 
 	return server
