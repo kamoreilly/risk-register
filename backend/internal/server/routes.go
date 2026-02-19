@@ -30,6 +30,10 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	protected := s.App.Group("/api/v1", middleware.AuthMiddleware)
 	protected.Get("/auth/me", s.auth.Me)
 
+	// Dashboard routes
+	dashboard := protected.Group("/dashboard")
+	dashboard.Get("/summary", s.dashboardHandler.Summary)
+
 	// Category routes (public read)
 	categories := protected.Group("/categories")
 	categories.Get("/", s.categoryHandler.List)
