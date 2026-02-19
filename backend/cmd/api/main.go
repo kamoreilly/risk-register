@@ -1,6 +1,7 @@
 package main
 
 import (
+	"backend/internal/migrations"
 	"backend/internal/server"
 	"context"
 	"fmt"
@@ -15,18 +16,14 @@ import (
 )
 
 func gracefulShutdown(fiberServer *server.FiberServer, done chan bool) {
-	// Create context that listens for the interrupt signal from the OS.
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	// Listen for the interrupt signal.
 	<-ctx.Done()
 
 	log.Println("shutting down gracefully, press Ctrl+C again to force")
-	stop() // Allow Ctrl+C to force shutdown
+	stop()
 
-	// The context is used to inform the server it has 5 seconds to finish
-	// the request it is currently handling
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := fiberServer.ShutdownWithContext(ctx); err != nil {
@@ -34,32 +31,53 @@ func gracefulShutdown(fiberServer *server.FiberServer, done chan bool) {
 	}
 
 	log.Println("Server exiting")
-
-	// Notify the main goroutine that the shutdown is complete
 	done <- true
 }
 
 func main() {
+	// Run migrations
+	databaseURL := buildDatabaseURL()
+	if err := migrations.RunMigrations(databaseURL); err != nil {
+		log.Printf("Migration warning: %v", err)
+	}
 
 	server := server.New()
-
 	server.RegisterFiberRoutes()
 
-	// Create a done channel to signal when the shutdown is complete
 	done := make(chan bool, 1)
 
 	go func() {
 		port, _ := strconv.Atoi(os.Getenv("PORT"))
+		if port == 0 {
+			port = 8080
+		}
 		err := server.Listen(fmt.Sprintf(":%d", port))
 		if err != nil {
 			panic(fmt.Sprintf("http server error: %s", err))
 		}
 	}()
 
-	// Run graceful shutdown in a separate goroutine
 	go gracefulShutdown(server, done)
 
-	// Wait for the graceful shutdown to complete
 	<-done
 	log.Println("Graceful shutdown complete.")
+}
+
+func buildDatabaseURL() string {
+	host := getEnv("RISK_REGISTER_DB_HOST", "localhost")
+	port := getEnv("RISK_REGISTER_DB_PORT", "5432")
+	user := getEnv("RISK_REGISTER_DB_USERNAME", "postgres")
+	password := getEnv("RISK_REGISTER_DB_PASSWORD", "postgres")
+	database := getEnv("RISK_REGISTER_DB_DATABASE", "risk_register")
+	schema := getEnv("RISK_REGISTER_DB_SCHEMA", "public")
+
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable&search_path=%s",
+		user, password, host, port, database, schema)
+}
+
+func getEnv(key, defaultVal string) string {
+	if val := os.Getenv(key); val != "" {
+		return val
+	}
+	return defaultVal
 }
