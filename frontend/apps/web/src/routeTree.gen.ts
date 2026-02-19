@@ -14,6 +14,9 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AppRisksIndexRouteImport } from './routes/app/risks/index'
+import { Route as AppRisksNewRouteImport } from './routes/app/risks/new'
+import { Route as AppRisksIdRouteImport } from './routes/app/risks/$id'
 
 const App_rootRoute = App_rootRouteImport.update({
   id: '/app/__root',
@@ -39,6 +42,21 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/app/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppRisksIndexRoute = AppRisksIndexRouteImport.update({
+  id: '/app/risks/',
+  path: '/app/risks/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRisksNewRoute = AppRisksNewRouteImport.update({
+  id: '/app/risks/new',
+  path: '/app/risks/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRisksIdRoute = AppRisksIdRouteImport.update({
+  id: '/app/risks/$id',
+  path: '/app/risks/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -46,12 +64,18 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/app': typeof App_rootRoute
   '/app/': typeof AppIndexRoute
+  '/app/risks/$id': typeof AppRisksIdRoute
+  '/app/risks/new': typeof AppRisksNewRoute
+  '/app/risks/': typeof AppRisksIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/app': typeof AppIndexRoute
+  '/app/risks/$id': typeof AppRisksIdRoute
+  '/app/risks/new': typeof AppRisksNewRoute
+  '/app/risks': typeof AppRisksIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -60,13 +84,40 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/app/__root': typeof App_rootRoute
   '/app/': typeof AppIndexRoute
+  '/app/risks/$id': typeof AppRisksIdRoute
+  '/app/risks/new': typeof AppRisksNewRoute
+  '/app/risks/': typeof AppRisksIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/register' | '/app' | '/app/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/register'
+    | '/app'
+    | '/app/'
+    | '/app/risks/$id'
+    | '/app/risks/new'
+    | '/app/risks/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/register' | '/app'
-  id: '__root__' | '/' | '/login' | '/register' | '/app/__root' | '/app/'
+  to:
+    | '/'
+    | '/login'
+    | '/register'
+    | '/app'
+    | '/app/risks/$id'
+    | '/app/risks/new'
+    | '/app/risks'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/register'
+    | '/app/__root'
+    | '/app/'
+    | '/app/risks/$id'
+    | '/app/risks/new'
+    | '/app/risks/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -75,6 +126,9 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   App_rootRoute: typeof App_rootRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppRisksIdRoute: typeof AppRisksIdRoute
+  AppRisksNewRoute: typeof AppRisksNewRoute
+  AppRisksIndexRoute: typeof AppRisksIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -114,6 +168,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/risks/': {
+      id: '/app/risks/'
+      path: '/app/risks'
+      fullPath: '/app/risks/'
+      preLoaderRoute: typeof AppRisksIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/risks/new': {
+      id: '/app/risks/new'
+      path: '/app/risks/new'
+      fullPath: '/app/risks/new'
+      preLoaderRoute: typeof AppRisksNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/risks/$id': {
+      id: '/app/risks/$id'
+      path: '/app/risks/$id'
+      fullPath: '/app/risks/$id'
+      preLoaderRoute: typeof AppRisksIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -123,6 +198,9 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   App_rootRoute: App_rootRoute,
   AppIndexRoute: AppIndexRoute,
+  AppRisksIdRoute: AppRisksIdRoute,
+  AppRisksNewRoute: AppRisksNewRoute,
+  AppRisksIndexRoute: AppRisksIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
