@@ -1,7 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import * as React from "react";
-import { toast } from "sonner";
 
+import { useAuth } from "@/hooks/useAuth";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -21,22 +21,24 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginComponent() {
+  const navigate = useNavigate();
+  const { login, isLoginLoading, loginError, isAuthenticated } = useAuth();
+
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [rememberMe, setRememberMe] = React.useState(false);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  // Redirect if already authenticated
+  // TODO: Change to "/app" once protected route is created (Task 1.14)
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      navigate({ to: "/" });
+    }
+  }, [isAuthenticated, navigate]);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      // TODO: wire to backend auth when available.
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      toast.success("Logged in (stub)");
-    } finally {
-      setIsSubmitting(false);
-    }
+    login({ email, password });
   }
 
   return (
@@ -49,6 +51,11 @@ function LoginComponent() {
           </CardHeader>
 
           <CardContent>
+            {loginError && (
+              <div className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                {loginError instanceof Error ? loginError.message : "Login failed"}
+              </div>
+            )}
             <form className="grid gap-3" onSubmit={onSubmit}>
               <div className="grid gap-1.5">
                 <Label htmlFor="email">Email</Label>
@@ -89,13 +96,19 @@ function LoginComponent() {
                 </Button>
               </div>
 
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Signing in…" : "Sign in"}
+              <Button type="submit" disabled={isLoginLoading}>
+                {isLoginLoading ? "Signing in..." : "Sign in"}
               </Button>
             </form>
           </CardContent>
 
           <CardFooter className="justify-between">
+            {/*
+              TODO: Uncomment register link once register route is created (Task 1.13)
+              <Link to="/register" className={cn(buttonVariants({ variant: "link", size: "sm" }))}>
+                Create account
+              </Link>
+            */}
             <div />
             <Link to="/" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
               Back
