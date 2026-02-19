@@ -1,10 +1,11 @@
 package server
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"io"
 	"net/http"
 	"testing"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func TestHandler(t *testing.T) {
@@ -28,7 +29,7 @@ func TestHandler(t *testing.T) {
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("expected status OK; got %v", resp.Status)
 	}
-	expected := "{\"message\":\"Hello World\"}"
+	expected := "{\"message\":\"Risk Register API\",\"version\":\"1.0.0\"}"
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		t.Fatalf("error reading response body. Err: %v", err)
