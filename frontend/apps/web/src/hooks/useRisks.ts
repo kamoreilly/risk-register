@@ -7,6 +7,7 @@ import type {
   Risk,
   RiskListParams,
   RiskListResponse,
+  RiskStatus,
   UpdateRiskInput,
 } from '@/types/risk';
 
@@ -74,6 +75,20 @@ export function useDeleteRisk() {
   return useMutation({
     mutationFn: (id: string) => api.delete(`/api/v1/risks/${id}`),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: RISKS_KEY });
+    },
+  });
+}
+
+// Update risk status (for Kanban board - updates any risk by id)
+export function useUpdateRiskStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: RiskStatus }) =>
+      api.put<Risk>(`/api/v1/risks/${id}`, { status }),
+    onSuccess: (updatedRisk) => {
+      queryClient.setQueryData([...RISKS_KEY, updatedRisk.id], updatedRisk);
       queryClient.invalidateQueries({ queryKey: RISKS_KEY });
     },
   });
