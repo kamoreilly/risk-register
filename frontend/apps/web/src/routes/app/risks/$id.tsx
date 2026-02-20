@@ -15,6 +15,7 @@ import {
   useUnlinkControl,
 } from "@/hooks/useFrameworks";
 import { useAuth } from "@/hooks/useAuth";
+import { useSummarize, useDraftMitigation } from "@/hooks/useAI";
 import { api } from "@/lib/api";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -107,6 +108,11 @@ function RiskDetail() {
   const [controlFrameworkId, setControlFrameworkId] = React.useState("");
   const [controlRef, setControlRef] = React.useState("");
   const [controlNotes, setControlNotes] = React.useState("");
+
+  // AI state
+  const [aiSummary, setAiSummary] = React.useState<string | null>(null);
+  const summarize = useSummarize();
+  const draftMitigation = useDraftMitigation();
 
   React.useEffect(() => {
     if (risk) {
@@ -264,6 +270,40 @@ function RiskDetail() {
     }
   };
 
+  // AI handlers
+  const handleSummarize = async () => {
+    if (!risk) return;
+
+    try {
+      const result = await summarize.mutateAsync({
+        title: risk.title,
+        description: risk.description,
+        severity: risk.severity,
+        status: risk.status,
+      });
+      setAiSummary(result.summary);
+      toast.success("Summary generated");
+    } catch (error) {
+      toast.error("Failed to generate summary");
+    }
+  };
+
+  const handleDraftMitigation = async () => {
+    if (!risk) return;
+
+    try {
+      const result = await draftMitigation.mutateAsync({
+        risk_title: risk.title,
+        risk_description: risk.description,
+        severity: risk.severity,
+      });
+      setMitigationDescription(result.draft);
+      toast.success("Draft generated");
+    } catch (error) {
+      toast.error("Failed to generate draft");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="p-8">
@@ -390,9 +430,25 @@ function RiskDetail() {
           ) : (
             <>
               <div>
-                <h3 className="font-medium mb-2">Description</h3>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-medium">Description</h3>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSummarize}
+                    disabled={summarize.isPending}
+                  >
+                    {summarize.isPending ? "Generating..." : "Summarize"}
+                  </Button>
+                </div>
                 <p className="text-muted-foreground">{risk.description || "No description"}</p>
               </div>
+              {aiSummary && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-medium text-blue-800 mb-2">AI Summary</h4>
+                  <p className="text-sm text-blue-700">{aiSummary}</p>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h3 className="font-medium mb-2">Category</h3>
@@ -439,7 +495,20 @@ function RiskDetail() {
                 {isAddingMitigation ? "Add New Mitigation" : "Edit Mitigation"}
               </h4>
               <div className="grid gap-2">
-                <Label htmlFor="mitigation-description">Description</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="mitigation-description">Description</Label>
+                  {isAddingMitigation && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDraftMitigation}
+                      disabled={draftMitigation.isPending}
+                    >
+                      {draftMitigation.isPending ? "Drafting..." : "Draft with AI"}
+                    </Button>
+                  )}
+                </div>
                 <textarea
                   id="mitigation-description"
                   className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
