@@ -11,3 +11,15 @@ export interface DashboardSummary {
   by_category: CategoryCount[];
   overdue_reviews: number;
 }
+
+export interface ReviewRisk {
+  id: string;
+  title: string;
+  review_date: string;
+  severity: string;
+  status: string;
+}
+
+export interface ReviewListResponse {
+  risks: ReviewRisk[];
+}

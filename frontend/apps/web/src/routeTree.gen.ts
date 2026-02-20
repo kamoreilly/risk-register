@@ -14,6 +14,7 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AppCalendarRouteImport } from './routes/app/calendar'
 import { Route as AppRisksIndexRouteImport } from './routes/app/risks/index'
 import { Route as AppRisksNewRouteImport } from './routes/app/risks/new'
 import { Route as AppRisksIdRouteImport } from './routes/app/risks/$id'
@@ -42,6 +43,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/app/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppCalendarRoute = AppCalendarRouteImport.update({
+  id: '/app/calendar',
+  path: '/app/calendar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRisksIndexRoute = AppRisksIndexRouteImport.update({
   id: '/app/risks/',
   path: '/app/risks/',
@@ -63,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/app': typeof App_rootRoute
+  '/app/calendar': typeof AppCalendarRoute
   '/app/': typeof AppIndexRoute
   '/app/risks/$id': typeof AppRisksIdRoute
   '/app/risks/new': typeof AppRisksNewRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/app': typeof AppIndexRoute
+  '/app/calendar': typeof AppCalendarRoute
   '/app/risks/$id': typeof AppRisksIdRoute
   '/app/risks/new': typeof AppRisksNewRoute
   '/app/risks': typeof AppRisksIndexRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/app/__root': typeof App_rootRoute
+  '/app/calendar': typeof AppCalendarRoute
   '/app/': typeof AppIndexRoute
   '/app/risks/$id': typeof AppRisksIdRoute
   '/app/risks/new': typeof AppRisksNewRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/app'
+    | '/app/calendar'
     | '/app/'
     | '/app/risks/$id'
     | '/app/risks/new'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/app'
+    | '/app/calendar'
     | '/app/risks/$id'
     | '/app/risks/new'
     | '/app/risks'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/app/__root'
+    | '/app/calendar'
     | '/app/'
     | '/app/risks/$id'
     | '/app/risks/new'
@@ -125,6 +137,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   App_rootRoute: typeof App_rootRoute
+  AppCalendarRoute: typeof AppCalendarRoute
   AppIndexRoute: typeof AppIndexRoute
   AppRisksIdRoute: typeof AppRisksIdRoute
   AppRisksNewRoute: typeof AppRisksNewRoute
@@ -168,6 +181,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/calendar': {
+      id: '/app/calendar'
+      path: '/app/calendar'
+      fullPath: '/app/calendar'
+      preLoaderRoute: typeof AppCalendarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/risks/': {
       id: '/app/risks/'
       path: '/app/risks'
@@ -197,6 +217,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   App_rootRoute: App_rootRoute,
+  AppCalendarRoute: AppCalendarRoute,
   AppIndexRoute: AppIndexRoute,
   AppRisksIdRoute: AppRisksIdRoute,
   AppRisksNewRoute: AppRisksNewRoute,
