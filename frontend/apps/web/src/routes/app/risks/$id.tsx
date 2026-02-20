@@ -8,6 +8,12 @@ import {
   useCreateMitigation,
   useDeleteMitigation,
 } from "@/hooks/useMitigations";
+import {
+  useFrameworks,
+  useRiskControls,
+  useLinkControl,
+  useUnlinkControl,
+} from "@/hooks/useFrameworks";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -31,6 +37,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { RiskStatus, RiskSeverity } from "@/types/risk";
 import type { MitigationStatus, Mitigation } from "@/types/mitigation";
+import type { RiskFrameworkControl } from "@/types/framework";
 
 export const Route = createFileRoute("/app/risks/$id")({
   component: RiskDetail,
@@ -73,6 +80,12 @@ function RiskDetail() {
   const createMitigation = useCreateMitigation(id);
   const deleteMitigation = useDeleteMitigation(id);
 
+  // Framework control hooks
+  const { data: frameworks } = useFrameworks();
+  const { data: controls, isLoading: controlsLoading } = useRiskControls(id);
+  const linkControl = useLinkControl(id);
+  const unlinkControl = useUnlinkControl(id);
+
   const [isEditing, setIsEditing] = React.useState(false);
   const [title, setTitle] = React.useState("");
   const [description, setDescription] = React.useState("");
@@ -88,6 +101,12 @@ function RiskDetail() {
   const [mitigationOwner, setMitigationOwner] = React.useState("");
   const [mitigationStatus, setMitigationStatus] = React.useState<MitigationStatus>("planned");
   const [mitigationDueDate, setMitigationDueDate] = React.useState("");
+
+  // Control state
+  const [isAddingControl, setIsAddingControl] = React.useState(false);
+  const [controlFrameworkId, setControlFrameworkId] = React.useState("");
+  const [controlRef, setControlRef] = React.useState("");
+  const [controlNotes, setControlNotes] = React.useState("");
 
   React.useEffect(() => {
     if (risk) {
@@ -200,6 +219,48 @@ function RiskDetail() {
       }
     } catch (error) {
       toast.error("Failed to delete mitigation");
+    }
+  };
+
+  // Control handlers
+  const resetControlForm = () => {
+    setControlFrameworkId("");
+    setControlRef("");
+    setControlNotes("");
+    setIsAddingControl(false);
+  };
+
+  const handleAddControl = async () => {
+    if (!controlFrameworkId) {
+      toast.error("Framework is required");
+      return;
+    }
+    if (!controlRef.trim()) {
+      toast.error("Control reference is required");
+      return;
+    }
+
+    try {
+      await linkControl.mutateAsync({
+        framework_id: controlFrameworkId,
+        control_ref: controlRef,
+        notes: controlNotes || undefined,
+      });
+      toast.success("Control linked");
+      resetControlForm();
+    } catch (error) {
+      toast.error("Failed to link control");
+    }
+  };
+
+  const handleDeleteControl = async (control: RiskFrameworkControl) => {
+    if (!confirm(`Are you sure you want to unlink "${control.framework_name}: ${control.control_ref}"?`)) return;
+
+    try {
+      await unlinkControl.mutateAsync(control.id);
+      toast.success("Control unlinked");
+    } catch (error) {
+      toast.error("Failed to unlink control");
     }
   };
 
@@ -496,6 +557,123 @@ function RiskDetail() {
             !isAddingMitigation && (
               <div className="text-center text-muted-foreground py-8">
                 No mitigations yet. Click "Add Mitigation" to create one.
+              </div>
+            )
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Compliance Controls Section */}
+      <Card className="mt-6">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Compliance Controls</CardTitle>
+              <CardDescription>
+                Framework controls mapped to this risk
+              </CardDescription>
+            </div>
+            {!isAddingControl && (
+              <Button onClick={() => setIsAddingControl(true)}>
+                Link Control
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Add Control Form */}
+          {isAddingControl && (
+            <div className="border rounded-lg p-4 space-y-4 bg-muted/50">
+              <h4 className="font-medium">Link New Control</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="control-framework">Framework</Label>
+                  <Select
+                    value={controlFrameworkId}
+                    onValueChange={(v) => v && setControlFrameworkId(v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select framework" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {frameworks?.map((framework) => (
+                        <SelectItem key={framework.id} value={framework.id}>
+                          {framework.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="control-ref">Control Reference</Label>
+                  <Input
+                    id="control-ref"
+                    value={controlRef}
+                    onChange={(e) => setControlRef(e.target.value)}
+                    placeholder="e.g., A.12.1.1"
+                  />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="control-notes">Notes (optional)</Label>
+                <textarea
+                  id="control-notes"
+                  className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={controlNotes}
+                  onChange={(e) => setControlNotes(e.target.value)}
+                  placeholder="Additional notes about this control mapping..."
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={resetControlForm}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleAddControl}
+                  disabled={linkControl.isPending}
+                >
+                  Link
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Controls List */}
+          {controlsLoading ? (
+            <div className="text-center text-muted-foreground py-4">
+              Loading controls...
+            </div>
+          ) : controls && controls.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {controls.map((control) => (
+                <div
+                  key={control.id}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-800 rounded-full text-sm font-medium group"
+                >
+                  <span>{control.framework_name}: {control.control_ref}</span>
+                  <button
+                    onClick={() => handleDeleteControl(control)}
+                    disabled={unlinkControl.isPending}
+                    className="ml-1 text-blue-600 hover:text-blue-900 opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Unlink control"
+                  >
+                    &times;
+                  </button>
+                  {control.notes && (
+                    <span
+                      className="text-xs text-blue-600 cursor-help"
+                      title={control.notes}
+                    >
+                      ?
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            !isAddingControl && (
+              <div className="text-center text-muted-foreground py-8">
+                No controls mapped. Click "Link Control" to add a compliance mapping.
               </div>
             )
           )}
