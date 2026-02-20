@@ -28,6 +28,7 @@ type FiberServer struct {
 	frameworkHandler  *handlers.FrameworkHandler
 	controlHandler    *handlers.ControlHandler
 	dashboardHandler  *handlers.DashboardHandler
+	aiHandler         *handlers.AIHandler
 }
 
 func New() *FiberServer {
@@ -60,6 +61,7 @@ func New() *FiberServer {
 		frameworkHandler:  handlers.NewFrameworkHandler(frameworks, controls),
 		controlHandler:    handlers.NewControlHandler(controls),
 		dashboardHandler:  handlers.NewDashboardHandler(rawDB),
+		aiHandler:         handlers.NewAIHandler(),
 	}
 
 	return server

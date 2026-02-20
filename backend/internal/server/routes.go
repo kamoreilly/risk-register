@@ -62,6 +62,11 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	risks.Get("/:riskId/controls", s.controlHandler.ListControls)
 	risks.Post("/:riskId/controls", s.controlHandler.LinkControl)
 	risks.Delete("/:riskId/controls/:id", s.controlHandler.UnlinkControl)
+
+	// AI routes (stubbed)
+	ai := protected.Group("/ai")
+	ai.Post("/summarize", s.aiHandler.Summarize)
+	ai.Post("/draft-mitigation", s.aiHandler.DraftMitigation)
 }
 
 func (s *FiberServer) HelloWorldHandler(c *fiber.Ctx) error {
