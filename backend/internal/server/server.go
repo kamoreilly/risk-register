@@ -19,10 +19,14 @@ type FiberServer struct {
 	risks             database.RiskRepository
 	categories        database.CategoryRepository
 	mitigations       database.MitigationRepository
+	frameworks        database.FrameworkRepository
+	controls          database.RiskFrameworkControlRepository
 	auth              *handlers.AuthHandler
 	riskHandler       *handlers.RiskHandler
 	categoryHandler   *handlers.CategoryHandler
 	mitigationHandler *handlers.MitigationHandler
+	frameworkHandler  *handlers.FrameworkHandler
+	controlHandler    *handlers.ControlHandler
 	dashboardHandler  *handlers.DashboardHandler
 }
 
@@ -33,6 +37,8 @@ func New() *FiberServer {
 	risks := database.NewRiskRepository(rawDB)
 	categories := database.NewCategoryRepository(rawDB)
 	mitigations := database.NewMitigationRepository(rawDB)
+	frameworks := database.NewFrameworkRepository(rawDB)
+	controls := database.NewRiskFrameworkControlRepository(rawDB)
 
 	server := &FiberServer{
 		App: fiber.New(fiber.Config{
@@ -45,10 +51,14 @@ func New() *FiberServer {
 		risks:             risks,
 		categories:        categories,
 		mitigations:       mitigations,
+		frameworks:        frameworks,
+		controls:          controls,
 		auth:              handlers.NewAuthHandler(users),
 		riskHandler:       handlers.NewRiskHandler(risks, categories),
 		categoryHandler:   handlers.NewCategoryHandler(categories),
 		mitigationHandler: handlers.NewMitigationHandler(mitigations),
+		frameworkHandler:  handlers.NewFrameworkHandler(frameworks, controls),
+		controlHandler:    handlers.NewControlHandler(controls),
 		dashboardHandler:  handlers.NewDashboardHandler(rawDB),
 	}
 

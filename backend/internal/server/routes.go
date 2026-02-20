@@ -53,6 +53,15 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	risks.Post("/:riskId/mitigations", s.mitigationHandler.Create)
 	risks.Put("/:riskId/mitigations/:id", s.mitigationHandler.Update)
 	risks.Delete("/:riskId/mitigations/:id", s.mitigationHandler.Delete)
+
+	// Framework routes (public list, admin create)
+	protected.Get("/frameworks", s.frameworkHandler.List)
+	protected.Post("/frameworks", middleware.RequireAdmin, s.frameworkHandler.Create)
+
+	// Nested control routes under a specific risk
+	risks.Get("/:riskId/controls", s.controlHandler.ListControls)
+	risks.Post("/:riskId/controls", s.controlHandler.LinkControl)
+	risks.Delete("/:riskId/controls/:id", s.controlHandler.UnlinkControl)
 }
 
 func (s *FiberServer) HelloWorldHandler(c *fiber.Ctx) error {
