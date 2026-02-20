@@ -33,6 +33,8 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	// Dashboard routes
 	dashboard := protected.Group("/dashboard")
 	dashboard.Get("/summary", s.dashboardHandler.Summary)
+	dashboard.Get("/reviews/upcoming", s.dashboardHandler.UpcomingReviews)
+	dashboard.Get("/reviews/overdue", s.dashboardHandler.OverdueReviews)
 
 	// Category routes (public read)
 	categories := protected.Group("/categories")
