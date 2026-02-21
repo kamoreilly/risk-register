@@ -54,6 +54,9 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	risks.Put("/:riskId/mitigations/:id", s.mitigationHandler.Update)
 	risks.Delete("/:riskId/mitigations/:id", s.mitigationHandler.Delete)
 
+	// Audit log routes for risks
+	risks.Get("/:riskId/audit", s.auditHandler.ListByRisk)
+
 	// Framework routes (public list, admin create)
 	protected.Get("/frameworks", s.frameworkHandler.List)
 	protected.Post("/frameworks", middleware.RequireAdmin, s.frameworkHandler.Create)
