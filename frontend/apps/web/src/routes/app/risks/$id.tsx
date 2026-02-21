@@ -16,6 +16,7 @@ import {
 } from "@/hooks/useFrameworks";
 import { useAuth } from "@/hooks/useAuth";
 import { useSummarize, useDraftMitigation } from "@/hooks/useAI";
+import { useAuditLogs } from "@/hooks/useAudit";
 import { api } from "@/lib/api";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -39,6 +40,7 @@ import { toast } from "sonner";
 import type { RiskStatus, RiskSeverity } from "@/types/risk";
 import type { MitigationStatus, Mitigation } from "@/types/mitigation";
 import type { RiskFrameworkControl } from "@/types/framework";
+import type { AuditAction } from "@/types/audit";
 
 export const Route = createFileRoute("/app/risks/$id")({
   component: RiskDetail,
@@ -86,6 +88,9 @@ function RiskDetail() {
   const { data: controls, isLoading: controlsLoading } = useRiskControls(id);
   const linkControl = useLinkControl(id);
   const unlinkControl = useUnlinkControl(id);
+
+  // Audit log hooks
+  const { data: auditLogs, isLoading: auditLogsLoading } = useAuditLogs(id);
 
   const [isEditing, setIsEditing] = React.useState(false);
   const [title, setTitle] = React.useState("");
@@ -745,6 +750,76 @@ function RiskDetail() {
                 No controls mapped. Click "Link Control" to add a compliance mapping.
               </div>
             )
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Audit History Section */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Audit History</CardTitle>
+          <CardDescription>
+            Timeline of changes made to this risk
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {auditLogsLoading ? (
+            <div className="text-center text-muted-foreground py-4">
+              Loading audit history...
+            </div>
+          ) : auditLogs && auditLogs.length > 0 ? (
+            <div className="space-y-4">
+              {auditLogs.map((log, index) => {
+                const isLast = index === auditLogs.length - 1;
+                const actionColorMap: Record<AuditAction, string> = {
+                  created: "bg-green-500",
+                  updated: "bg-blue-500",
+                  deleted: "bg-red-500",
+                };
+
+                return (
+                  <div key={log.id} className="flex gap-3">
+                    <div className="flex flex-col items-center">
+                      <div
+                        className={cn(
+                          "w-3 h-3 rounded-full",
+                          actionColorMap[log.action]
+                        )}
+                      />
+                      {!isLast && <div className="w-px flex-1 bg-border" />}
+                    </div>
+                    <div className={cn("pb-4", isLast && "pb-0")}>
+                      <p className="text-sm">
+                        <span className="font-medium">{log.user_name || "Unknown"}</span>
+                        {" "}
+                        {log.action === "created" && "created this risk"}
+                        {log.action === "updated" && "updated this risk"}
+                        {log.action === "deleted" && "deleted this risk"}
+                      </p>
+                      {log.action === "updated" && log.changes && (
+                        <ul className="mt-1 text-sm text-muted-foreground">
+                          {Object.entries(log.changes).map(([field, change]) => {
+                            const changeObj = change as { from?: unknown; to?: unknown } | undefined;
+                            return (
+                              <li key={field}>
+                                {field}: &quot;{String(changeObj?.from ?? "")}&quot; &rarr; &quot;{String(changeObj?.to ?? "")}&quot;
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {new Date(log.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center text-muted-foreground py-8">
+              No audit history available.
+            </div>
           )}
         </CardContent>
       </Card>
