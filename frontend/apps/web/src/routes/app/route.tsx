@@ -201,7 +201,7 @@ function AppLayoutContent({ user, logout }: { user: any; logout: () => void }) {
       {/* Main Content Area */}
       <SidebarInset>
         {/* Top Header Bar */}
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background/80 backdrop-blur-sm px-4">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b bg-background/80 backdrop-blur-sm px-4">
           {/* Mobile: Menu toggle | Desktop: Collapse trigger when collapsed */}
           <SidebarTrigger />
           {/* Only show collapse trigger in header when sidebar is collapsed */}
