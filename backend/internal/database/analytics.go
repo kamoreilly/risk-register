@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"sort"
 
 	"backend/internal/models"
 )
@@ -63,7 +64,17 @@ func (r *analyticsRepository) GetAnalytics(ctx context.Context, granularity mode
 }
 
 func (r *analyticsRepository) populateByField(ctx context.Context, field string, target *map[string]int) error {
-	query := fmt.Sprintf("SELECT %s, COUNT(*) FROM risks GROUP BY %s", field, field)
+	// Allowlist for valid field names to prevent SQL injection
+	var query string
+	switch field {
+	case "severity":
+		query = "SELECT severity, COUNT(*) FROM risks GROUP BY severity"
+	case "status":
+		query = "SELECT status, COUNT(*) FROM risks GROUP BY status"
+	default:
+		return fmt.Errorf("invalid field for grouping: %s", field)
+	}
+
 	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
 		return fmt.Errorf("failed to get counts by %s: %w", field, err)
@@ -74,7 +85,7 @@ func (r *analyticsRepository) populateByField(ctx context.Context, field string,
 		var value string
 		var count int
 		if err := rows.Scan(&value, &count); err != nil {
-			return err
+			return fmt.Errorf("failed to scan %s row: %w", field, err)
 		}
 		(*target)[value] = count
 	}
@@ -98,7 +109,7 @@ func (r *analyticsRepository) populateByCategory(ctx context.Context, target *[]
 	for rows.Next() {
 		var cc models.CategoryCount
 		if err := rows.Scan(&cc.CategoryID, &cc.CategoryName, &cc.Count); err != nil {
-			return err
+			return fmt.Errorf("failed to scan category row: %w", err)
 		}
 		*target = append(*target, cc)
 	}
@@ -130,7 +141,7 @@ func (r *analyticsRepository) populateCreatedOverTime(ctx context.Context, granu
 	for rows.Next() {
 		var dp models.TimeDataPoint
 		if err := rows.Scan(&dp.Period, &dp.Count); err != nil {
-			return err
+			return fmt.Errorf("failed to scan created over time row: %w", err)
 		}
 		*target = append(*target, dp)
 	}
@@ -212,14 +223,10 @@ func (r *analyticsRepository) populateStatusOverTime(ctx context.Context, granul
 		})
 	}
 
-	// Sort by period (simple bubble sort for small datasets)
-	for i := 0; i < len(*target)-1; i++ {
-		for j := i + 1; j < len(*target); j++ {
-			if (*target)[i].Period > (*target)[j].Period {
-				(*target)[i], (*target)[j] = (*target)[j], (*target)[i]
-			}
-		}
-	}
+	// Sort by period
+	sort.Slice(*target, func(i, j int) bool {
+		return (*target)[i].Period < (*target)[j].Period
+	})
 
 	return nil
 }
