@@ -105,13 +105,6 @@ function Board() {
 
   return (
     <div className="p-8 h-full">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Risk Board</h1>
-        <p className="text-muted-foreground">
-          Drag and drop risks to update their status
-        </p>
-      </div>
-
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}

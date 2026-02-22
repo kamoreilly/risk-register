@@ -59,10 +59,6 @@ function RisksList() {
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Risks</h1>
-          <p className="text-muted-foreground">Manage your organization's risks</p>
-        </div>
         <Link to="/app/risks/new">
           <Button>New Risk</Button>
         </Link>

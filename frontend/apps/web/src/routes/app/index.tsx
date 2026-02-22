@@ -41,13 +41,6 @@ function Dashboard() {
 
   return (
     <div className="p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">
-          At-a-glance overview of your risks
-        </p>
-      </div>
-
       {/* Stat Cards Row */}
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Total Risks" value={data?.total_risks ?? 0} />

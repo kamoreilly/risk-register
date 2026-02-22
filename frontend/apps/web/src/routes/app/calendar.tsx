@@ -132,13 +132,6 @@ function ReviewCalendar() {
 
   return (
     <div className="p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Review Calendar</h1>
-        <p className="text-muted-foreground">
-          View and manage upcoming risk reviews
-        </p>
-      </div>
-
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Calendar Section */}
         <div className="lg:col-span-2">
