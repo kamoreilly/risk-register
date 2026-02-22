@@ -23,8 +23,7 @@ export function useAuth() {
     onSuccess: (data) => {
       localStorage.setItem('token', data.token);
       queryClient.setQueryData(AUTH_KEY, data.user);
-      // TODO: Navigate to '//app' once protected route is created
-      navigate({ to: '/' });
+      navigate({ to: '/app' });
     },
   });
 
@@ -34,8 +33,7 @@ export function useAuth() {
     onSuccess: (data) => {
       localStorage.setItem('token', data.token);
       queryClient.setQueryData(AUTH_KEY, data.user);
-      // TODO: Navigate to '/app' once protected route is created
-      navigate({ to: '/' });
+      navigate({ to: '/app' });
     },
   });
 

@@ -29,10 +29,9 @@ function LoginComponent() {
   const [rememberMe, setRememberMe] = React.useState(false);
 
   // Redirect if already authenticated
-  // TODO: Change to "/app" once protected route is created (Task 1.14)
   React.useEffect(() => {
     if (isAuthenticated) {
-      navigate({ to: "/" });
+      navigate({ to: "/app" });
     }
   }, [isAuthenticated, navigate]);
 
@@ -100,6 +99,30 @@ function LoginComponent() {
                 {isLoginLoading ? "Signing in..." : "Sign in"}
               </Button>
             </form>
+
+            {import.meta.env.DEV && (
+              <div className="mt-6 border-t pt-4">
+                <div className="mb-2 text-xs font-medium text-muted-foreground">Dev Access</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => login({ email: "admin@example.com", password: "password123" })}
+                    type="button"
+                  >
+                    Admin
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => login({ email: "member@example.com", password: "password123" })}
+                    type="button"
+                  >
+                    Member
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
 
           <CardFooter className="justify-between">

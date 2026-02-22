@@ -1,4 +1,5 @@
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import Loader from "./components/loader";
 import { NotFoundPage } from "./components/not-found";
@@ -6,14 +7,20 @@ import "./index.css";
 import { routeTree } from "./routeTree.gen";
 
 export const getRouter = () => {
+  const queryClient = new QueryClient();
+
   const router = createTanStackRouter({
     routeTree,
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
-    context: {},
+    context: {
+      queryClient,
+    },
     defaultPendingComponent: () => <Loader />,
     defaultNotFoundComponent: () => <NotFoundPage />,
-    Wrap: ({ children }) => <>{children}</>,
+    Wrap: ({ children }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    ),
   });
   return router;
 };
