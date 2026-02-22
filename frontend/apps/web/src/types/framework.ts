@@ -26,3 +26,8 @@ export interface CreateFrameworkInput {
   name: string;
   description?: string;
 }
+
+export interface UpdateFrameworkInput {
+  name?: string;
+  description?: string;
+}

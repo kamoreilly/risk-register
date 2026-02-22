@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
+import { DASHBOARD_KEY } from './useDashboard';
 import type {
   Category,
   CreateRiskInput,
@@ -20,6 +21,41 @@ export function useCategories() {
     queryKey: CATEGORIES_KEY,
     queryFn: () => api.get<Category[]>('/api/v1/categories'),
     staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+export function useCreateCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: { name: string; description?: string }) =>
+      api.post<Category>('/api/v1/categories', input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CATEGORIES_KEY });
+    },
+  });
+}
+
+export function useUpdateCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, ...input }: { id: string; name: string; description?: string }) =>
+      api.put<Category>(`/api/v1/categories/${id}`, input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CATEGORIES_KEY });
+    },
+  });
+}
+
+export function useDeleteCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/api/v1/categories/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CATEGORIES_KEY });
+    },
   });
 }
 
@@ -50,6 +86,7 @@ export function useCreateRisk() {
       api.post<Risk>('/api/v1/risks', input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: RISKS_KEY });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_KEY });
     },
   });
 }
@@ -64,6 +101,7 @@ export function useUpdateRisk(id: string) {
     onSuccess: (updatedRisk) => {
       queryClient.setQueryData([...RISKS_KEY, id], updatedRisk);
       queryClient.invalidateQueries({ queryKey: RISKS_KEY });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_KEY });
     },
   });
 }
@@ -76,6 +114,7 @@ export function useDeleteRisk() {
     mutationFn: (id: string) => api.delete(`/api/v1/risks/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: RISKS_KEY });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_KEY });
     },
   });
 }
@@ -90,6 +129,7 @@ export function useUpdateRiskStatus() {
     onSuccess: (updatedRisk) => {
       queryClient.setQueryData([...RISKS_KEY, updatedRisk.id], updatedRisk);
       queryClient.invalidateQueries({ queryKey: RISKS_KEY });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_KEY });
     },
   });
 }

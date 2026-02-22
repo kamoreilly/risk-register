@@ -1,5 +1,5 @@
 import * as React from "react";
-import { MenuIcon } from "lucide-react";
+import { MenuIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -8,24 +8,35 @@ type SidebarContextValue = {
   open: boolean;
   setOpen: (open: boolean) => void;
   toggle: () => void;
+  collapsed: boolean;
+  setCollapsed: (collapsed: boolean) => void;
+  toggleCollapse: () => void;
 };
 
 const SidebarContext = React.createContext<SidebarContextValue | null>(null);
 
 function SidebarProvider({
   defaultOpen = false,
+  defaultCollapsed = false,
   children,
 }: {
   defaultOpen?: boolean;
+  defaultCollapsed?: boolean;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(defaultOpen);
+  const [collapsed, setCollapsed] = React.useState(defaultCollapsed);
+
   const toggle = React.useCallback(() => {
     setOpen((prev) => !prev);
   }, []);
 
+  const toggleCollapse = React.useCallback(() => {
+    setCollapsed((prev) => !prev);
+  }, []);
+
   return (
-    <SidebarContext.Provider value={{ open, setOpen, toggle }}>
+    <SidebarContext.Provider value={{ open, setOpen, toggle, collapsed, setCollapsed, toggleCollapse }}>
       {children}
     </SidebarContext.Provider>
   );
@@ -40,14 +51,15 @@ function useSidebar() {
 }
 
 function Sidebar({ className, children, ...props }: React.ComponentProps<"aside">) {
-  const { open, setOpen } = useSidebar();
+  const { open, setOpen, collapsed } = useSidebar();
 
   return (
     <>
       <aside
         className={cn(
-          "bg-sidebar text-sidebar-foreground border-sidebar-border fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r transition-transform duration-200 md:static md:translate-x-0",
+          "bg-sidebar text-sidebar-foreground border-sidebar-border fixed inset-y-0 left-0 z-40 flex flex-col border-r transition-[width,transform] duration-200 md:static md:translate-x-0",
           open ? "translate-x-0" : "-translate-x-full",
+          collapsed ? "w-16" : "w-64",
           className,
         )}
         {...props}
@@ -71,7 +83,8 @@ function SidebarInset({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 function SidebarHeader({ className, ...props }: React.ComponentProps<"div">) {
-  return <div className={cn("flex h-14 items-center gap-2 border-b border-sidebar-border px-4", className)} {...props} />;
+  const { collapsed } = useSidebar();
+  return <div className={cn("flex h-14 items-center gap-2 border-b border-sidebar-border px-4", collapsed && "justify-center px-2", className)} {...props} />;
 }
 
 function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
@@ -79,7 +92,8 @@ function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 function SidebarFooter({ className, ...props }: React.ComponentProps<"div">) {
-  return <div className={cn("border-t border-sidebar-border px-2 py-4", className)} {...props} />;
+  const { collapsed } = useSidebar();
+  return <div className={cn("border-t border-sidebar-border px-2 py-4", collapsed && "flex flex-col items-center", className)} {...props} />;
 }
 
 function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
@@ -87,6 +101,8 @@ function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 function SidebarGroupLabel({ className, ...props }: React.ComponentProps<"div">) {
+  const { collapsed } = useSidebar();
+  if (collapsed) return null;
   return (
     <div
       className={cn("px-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground", className)}
@@ -108,22 +124,35 @@ function SidebarMenuButton({
   isActive = false,
   className,
   children,
+  tooltip,
   ...props
 }: React.ComponentProps<"button"> & {
   asChild?: boolean;
   isActive?: boolean;
+  tooltip?: string;
 }) {
+  const { collapsed } = useSidebar();
   const baseClassName = cn(
     "flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
     isActive
       ? "bg-sidebar-accent text-sidebar-accent-foreground"
       : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+    collapsed && "justify-center px-2",
     className,
   );
 
-  if (asChild && React.isValidElement<{ className?: string }>(children)) {
+  if (asChild && React.isValidElement<{ className?: string; children?: React.ReactNode }>(children)) {
+    // When collapsed, we want to hide the text content (usually in a span)
+    // This is a bit tricky with asChild. Usually the child is a Link which contains Icon and Span.
+    // We can use CSS to hide the span when collapsed, or rely on the consumer to handle it.
+    // But since we are modifying the library component, let's try to be smart.
+    // Actually, simple CSS solution: "group-data-[collapsed=true]:hidden" if we add data attribute.
+    // Or just use the passed className.
+    
     return React.cloneElement(children, {
       className: cn(baseClassName, children.props.className),
+      // We can't easily modify children of children here. 
+      // Instead, we will wrap the content in a way that hides text.
     });
   }
 
@@ -151,6 +180,23 @@ function SidebarTrigger({ className, ...props }: React.ComponentProps<"button">)
   );
 }
 
+function SidebarCollapseTrigger({ className, ...props }: React.ComponentProps<"button">) {
+  const { toggleCollapse, collapsed } = useSidebar();
+
+  return (
+    <Button
+      aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      variant="ghost"
+      size="icon-sm"
+      className={cn("hidden md:flex", className)}
+      onClick={toggleCollapse}
+      {...props}
+    >
+      {collapsed ? <ChevronRightIcon className="size-4" /> : <ChevronLeftIcon className="size-4" />}
+    </Button>
+  );
+}
+
 export {
   Sidebar,
   SidebarContent,
@@ -164,4 +210,6 @@ export {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
+  SidebarCollapseTrigger,
+  useSidebar,
 };

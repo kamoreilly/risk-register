@@ -14,6 +14,8 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AppFrameworksRouteImport } from './routes/app/frameworks'
+import { Route as AppCategoriesRouteImport } from './routes/app/categories'
 import { Route as AppCalendarRouteImport } from './routes/app/calendar'
 import { Route as AppBoardRouteImport } from './routes/app/board'
 import { Route as AppRisksIndexRouteImport } from './routes/app/risks/index'
@@ -43,6 +45,16 @@ const IndexRoute = IndexRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppFrameworksRoute = AppFrameworksRouteImport.update({
+  id: '/frameworks',
+  path: '/frameworks',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppCategoriesRoute = AppCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppCalendarRoute = AppCalendarRouteImport.update({
@@ -78,6 +90,8 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/app/board': typeof AppBoardRoute
   '/app/calendar': typeof AppCalendarRoute
+  '/app/categories': typeof AppCategoriesRoute
+  '/app/frameworks': typeof AppFrameworksRoute
   '/app/': typeof AppIndexRoute
   '/app/risks/$id': typeof AppRisksIdRoute
   '/app/risks/new': typeof AppRisksNewRoute
@@ -89,6 +103,8 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/app/board': typeof AppBoardRoute
   '/app/calendar': typeof AppCalendarRoute
+  '/app/categories': typeof AppCategoriesRoute
+  '/app/frameworks': typeof AppFrameworksRoute
   '/app': typeof AppIndexRoute
   '/app/risks/$id': typeof AppRisksIdRoute
   '/app/risks/new': typeof AppRisksNewRoute
@@ -102,6 +118,8 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/app/board': typeof AppBoardRoute
   '/app/calendar': typeof AppCalendarRoute
+  '/app/categories': typeof AppCategoriesRoute
+  '/app/frameworks': typeof AppFrameworksRoute
   '/app/': typeof AppIndexRoute
   '/app/risks/$id': typeof AppRisksIdRoute
   '/app/risks/new': typeof AppRisksNewRoute
@@ -116,6 +134,8 @@ export interface FileRouteTypes {
     | '/register'
     | '/app/board'
     | '/app/calendar'
+    | '/app/categories'
+    | '/app/frameworks'
     | '/app/'
     | '/app/risks/$id'
     | '/app/risks/new'
@@ -127,6 +147,8 @@ export interface FileRouteTypes {
     | '/register'
     | '/app/board'
     | '/app/calendar'
+    | '/app/categories'
+    | '/app/frameworks'
     | '/app'
     | '/app/risks/$id'
     | '/app/risks/new'
@@ -139,6 +161,8 @@ export interface FileRouteTypes {
     | '/register'
     | '/app/board'
     | '/app/calendar'
+    | '/app/categories'
+    | '/app/frameworks'
     | '/app/'
     | '/app/risks/$id'
     | '/app/risks/new'
@@ -189,6 +213,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/frameworks': {
+      id: '/app/frameworks'
+      path: '/frameworks'
+      fullPath: '/app/frameworks'
+      preLoaderRoute: typeof AppFrameworksRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/categories': {
+      id: '/app/categories'
+      path: '/categories'
+      fullPath: '/app/categories'
+      preLoaderRoute: typeof AppCategoriesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/app/calendar': {
       id: '/app/calendar'
       path: '/calendar'
@@ -230,6 +268,8 @@ declare module '@tanstack/react-router' {
 interface AppRouteRouteChildren {
   AppBoardRoute: typeof AppBoardRoute
   AppCalendarRoute: typeof AppCalendarRoute
+  AppCategoriesRoute: typeof AppCategoriesRoute
+  AppFrameworksRoute: typeof AppFrameworksRoute
   AppIndexRoute: typeof AppIndexRoute
   AppRisksIdRoute: typeof AppRisksIdRoute
   AppRisksNewRoute: typeof AppRisksNewRoute
@@ -239,6 +279,8 @@ interface AppRouteRouteChildren {
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppBoardRoute: AppBoardRoute,
   AppCalendarRoute: AppCalendarRoute,
+  AppCategoriesRoute: AppCategoriesRoute,
+  AppFrameworksRoute: AppFrameworksRoute,
   AppIndexRoute: AppIndexRoute,
   AppRisksIdRoute: AppRisksIdRoute,
   AppRisksNewRoute: AppRisksNewRoute,

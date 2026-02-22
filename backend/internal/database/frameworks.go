@@ -17,6 +17,8 @@ type FrameworkRepository interface {
 	List(ctx context.Context) ([]*models.Framework, error)
 	GetByID(ctx context.Context, id string) (*models.Framework, error)
 	Create(ctx context.Context, input *models.CreateFrameworkInput) (*models.Framework, error)
+	Update(ctx context.Context, id string, input *models.UpdateFrameworkInput) (*models.Framework, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type RiskFrameworkControlRepository interface {
@@ -43,7 +45,7 @@ func NewRiskFrameworkControlRepository(db *sql.DB) RiskFrameworkControlRepositor
 
 func (r *frameworkRepository) List(ctx context.Context) ([]*models.Framework, error) {
 	query := `
-		SELECT id, name, description, created_at
+		SELECT id, name, description, created_at, updated_at
 		FROM frameworks ORDER BY name ASC
 	`
 
@@ -61,6 +63,7 @@ func (r *frameworkRepository) List(ctx context.Context) ([]*models.Framework, er
 			&framework.Name,
 			&framework.Description,
 			&framework.CreatedAt,
+			&framework.UpdatedAt,
 		)
 		if err != nil {
 			return nil, err
@@ -73,7 +76,7 @@ func (r *frameworkRepository) List(ctx context.Context) ([]*models.Framework, er
 
 func (r *frameworkRepository) GetByID(ctx context.Context, id string) (*models.Framework, error) {
 	query := `
-		SELECT id, name, description, created_at
+		SELECT id, name, description, created_at, updated_at
 		FROM frameworks WHERE id = $1
 	`
 
@@ -83,6 +86,7 @@ func (r *frameworkRepository) GetByID(ctx context.Context, id string) (*models.F
 		&framework.Name,
 		&framework.Description,
 		&framework.CreatedAt,
+		&framework.UpdatedAt,
 	)
 
 	if err != nil {
@@ -106,7 +110,7 @@ func (r *frameworkRepository) Create(ctx context.Context, input *models.CreateFr
 	query := `
 		INSERT INTO frameworks (id, name, description, created_at)
 		VALUES ($1, $2, $3, $4)
-		RETURNING id, created_at
+		RETURNING id, created_at, updated_at
 	`
 
 	err := r.db.QueryRowContext(ctx, query,
@@ -114,13 +118,53 @@ func (r *frameworkRepository) Create(ctx context.Context, input *models.CreateFr
 		framework.Name,
 		framework.Description,
 		framework.CreatedAt,
-	).Scan(&framework.ID, &framework.CreatedAt)
+	).Scan(&framework.ID, &framework.CreatedAt, &framework.UpdatedAt)
 
 	if err != nil {
 		return nil, err
 	}
 
 	return framework, nil
+}
+
+func (r *frameworkRepository) Update(ctx context.Context, id string, input *models.UpdateFrameworkInput) (*models.Framework, error) {
+	if input.Name == nil && input.Description == nil {
+		return nil, errors.New("at least one field must be updated")
+	}
+
+	framework := &models.Framework{}
+	query := `
+		UPDATE frameworks
+		SET name = COALESCE($1, name), description = COALESCE($2, description), updated_at = NOW()
+		WHERE id = $3
+		RETURNING id, name, description, created_at, updated_at
+	`
+	err := r.db.QueryRowContext(ctx, query, input.Name, input.Description, id).Scan(
+		&framework.ID, &framework.Name, &framework.Description, &framework.CreatedAt, &framework.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrFrameworkNotFound
+		}
+		return nil, err
+	}
+	return framework, nil
+}
+
+func (r *frameworkRepository) Delete(ctx context.Context, id string) error {
+	query := `DELETE FROM frameworks WHERE id = $1`
+	result, err := r.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrFrameworkNotFound
+	}
+	return nil
 }
 
 func (r *riskFrameworkControlRepository) ListByRiskID(ctx context.Context, riskID string) ([]*models.RiskFrameworkControl, error) {

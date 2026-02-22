@@ -36,9 +36,12 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	dashboard.Get("/reviews/upcoming", s.dashboardHandler.UpcomingReviews)
 	dashboard.Get("/reviews/overdue", s.dashboardHandler.OverdueReviews)
 
-	// Category routes (public read)
+	// Category routes (admin only)
 	categories := protected.Group("/categories")
-	categories.Get("/", s.categoryHandler.List)
+	categories.Get("/", middleware.RequireAdmin, s.categoryHandler.List)
+	categories.Post("/", middleware.RequireAdmin, s.categoryHandler.Create)
+	categories.Put("/:id", middleware.RequireAdmin, s.categoryHandler.Update)
+	categories.Delete("/:id", middleware.RequireAdmin, s.categoryHandler.Delete)
 
 	// Risk routes
 	risks := protected.Group("/risks")
@@ -57,9 +60,11 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	// Audit log routes for risks
 	risks.Get("/:riskId/audit", s.auditHandler.ListByRisk)
 
-	// Framework routes (public list, admin create)
-	protected.Get("/frameworks", s.frameworkHandler.List)
+	// Framework routes (admin only)
+	protected.Get("/frameworks", middleware.RequireAdmin, s.frameworkHandler.List)
 	protected.Post("/frameworks", middleware.RequireAdmin, s.frameworkHandler.Create)
+	protected.Put("/frameworks/:id", middleware.RequireAdmin, s.frameworkHandler.Update)
+	protected.Delete("/frameworks/:id", middleware.RequireAdmin, s.frameworkHandler.Delete)
 
 	// Nested control routes under a specific risk
 	risks.Get("/:riskId/controls", s.controlHandler.ListControls)

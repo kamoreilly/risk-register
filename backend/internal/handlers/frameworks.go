@@ -48,6 +48,51 @@ func (h *FrameworkHandler) Create(c *fiber.Ctx) error {
 	return c.Status(201).JSON(framework)
 }
 
+// Update updates a framework (admin only)
+func (h *FrameworkHandler) Update(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "framework id required"})
+	}
+
+	var input models.UpdateFrameworkInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid request body"})
+	}
+
+	if input.Name == nil && input.Description == nil {
+		return c.Status(400).JSON(fiber.Map{"error": "at least one field must be provided"})
+	}
+	if input.Name != nil && *input.Name == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "name cannot be empty"})
+	}
+
+	framework, err := h.frameworkRepo.Update(c.Context(), id, &input)
+	if err != nil {
+		if err == database.ErrFrameworkNotFound {
+			return c.Status(404).JSON(fiber.Map{"error": "framework not found"})
+		}
+		return c.Status(500).JSON(fiber.Map{"error": "failed to update framework"})
+	}
+	return c.JSON(framework)
+}
+
+// Delete deletes a framework (admin only)
+func (h *FrameworkHandler) Delete(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "framework id required"})
+	}
+
+	if err := h.frameworkRepo.Delete(c.Context(), id); err != nil {
+		if err == database.ErrFrameworkNotFound {
+			return c.Status(404).JSON(fiber.Map{"error": "framework not found"})
+		}
+		return c.Status(500).JSON(fiber.Map{"error": "failed to delete framework"})
+	}
+	return c.SendStatus(204)
+}
+
 type ControlHandler struct {
 	controlRepo database.RiskFrameworkControlRepository
 }

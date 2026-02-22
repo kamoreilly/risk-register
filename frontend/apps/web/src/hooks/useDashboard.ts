@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type { DashboardSummary, ReviewListResponse } from '@/types/dashboard';
 
-const DASHBOARD_KEY = ['dashboard'];
+export const DASHBOARD_KEY = ['dashboard'];
 
 export function useDashboardSummary() {
   return useQuery({

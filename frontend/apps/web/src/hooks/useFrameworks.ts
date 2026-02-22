@@ -75,3 +75,26 @@ export function useCreateFramework() {
     },
   });
 }
+
+export function useUpdateFramework() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, ...input }: { id: string; name: string; description?: string }) =>
+      api.put<Framework>(`/api/v1/frameworks/${id}`, input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [FRAMEWORKS_KEY] });
+    },
+  });
+}
+
+export function useDeleteFramework() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/api/v1/frameworks/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [FRAMEWORKS_KEY] });
+    },
+  });
+}

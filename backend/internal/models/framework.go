@@ -7,6 +7,7 @@ type Framework struct {
 	Name        string    `json:"name" db:"name"`
 	Description string    `json:"description,omitempty" db:"description"`
 	CreatedAt   time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at" db:"updated_at"`
 }
 
 type RiskFrameworkControl struct {
@@ -23,6 +24,11 @@ type RiskFrameworkControl struct {
 type CreateFrameworkInput struct {
 	Name        string `json:"name" validate:"required"`
 	Description string `json:"description"`
+}
+
+type UpdateFrameworkInput struct {
+	Name        *string `json:"name"`
+	Description *string `json:"description"`
 }
 
 type LinkControlInput struct {
