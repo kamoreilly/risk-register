@@ -20,7 +20,7 @@ export const Route = createFileRoute("/login")({
   component: LoginComponent,
 });
 
-function LoginComponent() {
+export function LoginComponent() {
   const navigate = useNavigate();
   const { login, isLoginLoading, loginError, isAuthenticated } = useAuth();
 

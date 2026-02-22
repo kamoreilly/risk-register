@@ -43,6 +43,7 @@ func New() *FiberServer {
 	frameworks := database.NewFrameworkRepository(rawDB)
 	controls := database.NewRiskFrameworkControlRepository(rawDB)
 	audit := database.NewAuditLogRepository(rawDB)
+	dashboard := database.NewDashboardRepository(rawDB)
 
 	server := &FiberServer{
 		App: fiber.New(fiber.Config{
@@ -64,7 +65,7 @@ func New() *FiberServer {
 		mitigationHandler: handlers.NewMitigationHandler(mitigations),
 		frameworkHandler:  handlers.NewFrameworkHandler(frameworks, controls),
 		controlHandler:    handlers.NewControlHandler(controls),
-		dashboardHandler:  handlers.NewDashboardHandler(rawDB),
+		dashboardHandler:  handlers.NewDashboardHandler(dashboard),
 		aiHandler:         handlers.NewAIHandler(),
 		auditHandler:      handlers.NewAuditHandler(audit),
 	}

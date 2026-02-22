@@ -29,10 +29,16 @@ docker-down:
 		docker-compose down; \
 	fi
 
-# Test the application
+# Test the application (all tests)
 test:
 	@echo "Testing..."
 	@go test ./... -v
+
+# Run only unit tests (skip integration tests)
+test-unit:
+	@echo "Running unit tests..."
+	@go test ./... -v -short
+
 # Integrations Tests for the application
 itest:
 	@echo "Running integration tests..."

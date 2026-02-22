@@ -2,12 +2,19 @@ package database
 
 import (
 	"context"
+	"flag"
 	"log"
+	"os"
+	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	pgContainer "github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
@@ -18,12 +25,12 @@ func mustStartPostgresContainer() (func(context.Context, ...testcontainers.Termi
 		dbUser = "user"
 	)
 
-	dbContainer, err := postgres.Run(
+	dbContainer, err := pgContainer.Run(
 		context.Background(),
 		"postgres:latest",
-		postgres.WithDatabase(dbName),
-		postgres.WithUsername(dbUser),
-		postgres.WithPassword(dbPwd),
+		pgContainer.WithDatabase(dbName),
+		pgContainer.WithUsername(dbUser),
+		pgContainer.WithPassword(dbPwd),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
 				WithOccurrence(2).
@@ -53,17 +60,47 @@ func mustStartPostgresContainer() (func(context.Context, ...testcontainers.Termi
 	return dbContainer.Terminate, err
 }
 
+func runMigrations() error {
+	s := New().(*service)
+	driver, err := postgres.WithInstance(s.db, &postgres.Config{})
+	if err != nil {
+		return err
+	}
+
+	_, filename, _, _ := runtime.Caller(0)
+	migrationsPath := filepath.Join(filepath.Dir(filename), "../migrations/migrations")
+
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://"+migrationsPath,
+		"postgres", driver)
+	if err != nil {
+		return err
+	}
+	return m.Up()
+}
+
 func TestMain(m *testing.M) {
+	flag.Parse()
+	if testing.Short() {
+		os.Exit(m.Run())
+	}
+
 	teardown, err := mustStartPostgresContainer()
 	if err != nil {
 		log.Fatalf("could not start postgres container: %v", err)
 	}
 
-	m.Run()
-
-	if teardown != nil && teardown(context.Background()) != nil {
-		log.Fatalf("could not teardown postgres container: %v", err)
+	if err := runMigrations(); err != nil {
+		log.Fatalf("migrations failed: %v", err)
 	}
+
+	code := m.Run()
+
+	if err := teardown(context.Background()); err != nil {
+		log.Printf("warning: could not teardown postgres container: %v", err)
+	}
+
+	os.Exit(code)
 }
 
 func TestNew(t *testing.T) {
@@ -74,6 +111,10 @@ func TestNew(t *testing.T) {
 }
 
 func TestHealth(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
+
 	srv := New()
 
 	stats := srv.Health()
@@ -92,6 +133,10 @@ func TestHealth(t *testing.T) {
 }
 
 func TestClose(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
+
 	srv := New()
 
 	if srv.Close() != nil {
