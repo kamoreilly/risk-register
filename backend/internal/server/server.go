@@ -29,6 +29,7 @@ type FiberServer struct {
 	frameworkHandler  *handlers.FrameworkHandler
 	controlHandler    *handlers.ControlHandler
 	dashboardHandler  *handlers.DashboardHandler
+	analyticsHandler  *handlers.AnalyticsHandler
 	aiHandler         *handlers.AIHandler
 	auditHandler      *handlers.AuditHandler
 }
@@ -44,6 +45,7 @@ func New() *FiberServer {
 	controls := database.NewRiskFrameworkControlRepository(rawDB)
 	audit := database.NewAuditLogRepository(rawDB)
 	dashboard := database.NewDashboardRepository(rawDB)
+	analytics := database.NewAnalyticsRepository(rawDB)
 
 	server := &FiberServer{
 		App: fiber.New(fiber.Config{
@@ -66,6 +68,7 @@ func New() *FiberServer {
 		frameworkHandler:  handlers.NewFrameworkHandler(frameworks, controls),
 		controlHandler:    handlers.NewControlHandler(controls),
 		dashboardHandler:  handlers.NewDashboardHandler(dashboard),
+		analyticsHandler:  handlers.NewAnalyticsHandler(analytics),
 		aiHandler:         handlers.NewAIHandler(),
 		auditHandler:      handlers.NewAuditHandler(audit),
 	}

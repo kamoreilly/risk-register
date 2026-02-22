@@ -36,6 +36,9 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	dashboard.Get("/reviews/upcoming", s.dashboardHandler.UpcomingReviews)
 	dashboard.Get("/reviews/overdue", s.dashboardHandler.OverdueReviews)
 
+	// Analytics routes
+	protected.Get("/analytics", s.analyticsHandler.Get)
+
 	// Category routes (admin only)
 	categories := protected.Group("/categories")
 	categories.Get("/", middleware.RequireAdmin, s.categoryHandler.List)
