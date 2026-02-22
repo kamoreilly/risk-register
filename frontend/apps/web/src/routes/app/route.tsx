@@ -9,7 +9,6 @@ import {
   LogOut,
   ShieldCheckIcon,
   ShieldIcon,
-  XIcon,
 } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -17,6 +16,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
+  SidebarCloseButton,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
@@ -75,7 +75,7 @@ function AppLayout() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-svh items-center justify-center">
+      <div className="flex h-dvh items-center justify-center bg-background">
         <Loader />
       </div>
     );
@@ -111,21 +111,24 @@ function AppLayoutContent({ user, logout }: { user: any; logout: () => void }) {
   const pageTitle = getPageTitle(location.pathname);
 
   return (
-    <div className="flex min-h-svh w-full bg-background">
+    <>
+      {/* Fixed Sidebar */}
       <Sidebar className="border-r">
         <SidebarHeader>
-          <div className={cn("flex w-full items-center justify-between gap-2", collapsed ? "justify-center" : "px-2")}>
-            <Link to="/app" className="flex items-center gap-2">
-              <span className="bg-primary text-primary-foreground inline-flex size-8 items-center justify-center rounded-md border">
+          <div className={cn("flex w-full items-center", collapsed ? "justify-center" : "justify-between")}>
+            <Link to="/app" className="flex items-center gap-2.5">
+              <span className="bg-primary text-primary-foreground inline-flex size-8 items-center justify-center rounded-lg shadow-sm">
                 <ShieldCheckIcon className="size-4" />
               </span>
-              {!collapsed && <span className="text-sm font-semibold">Risk Register</span>}
+              {!collapsed && (
+                <span className="text-sm font-semibold tracking-tight">Risk Register</span>
+              )}
             </Link>
-            {!collapsed && (
-              <SidebarCollapseTrigger />
-            )}
+            {/* Only show collapse trigger in sidebar header when expanded */}
+            {!collapsed && <SidebarCollapseTrigger />}
           </div>
         </SidebarHeader>
+
         <SidebarContent>
           <SidebarGroup>
             <SidebarGroupLabel>Navigation</SidebarGroupLabel>
@@ -138,11 +141,11 @@ function AppLayoutContent({ user, logout }: { user: any; logout: () => void }) {
                       activeProps={{ className: "bg-sidebar-accent text-sidebar-accent-foreground" }}
                       inactiveProps={{
                         className:
-                          "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                          "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
                       }}
                       activeOptions={item.exact ? { exact: true } : undefined}
                     >
-                      <item.icon className="size-4" />
+                      <item.icon className="size-[18px] shrink-0" />
                       {!collapsed && <span>{item.label}</span>}
                     </Link>
                   </SidebarMenuButton>
@@ -151,25 +154,26 @@ function AppLayoutContent({ user, logout }: { user: any; logout: () => void }) {
             </SidebarMenu>
           </SidebarGroup>
         </SidebarContent>
+
         <SidebarFooter>
-          <div className={cn("flex flex-col gap-3", collapsed ? "items-center" : "px-2")}>
+          <div className={cn("flex w-full flex-col gap-3", collapsed && "items-center")}>
             {/* Theme Toggle */}
             <div className={cn("flex items-center", collapsed ? "justify-center" : "justify-between")}>
-              {!collapsed && <span className="text-xs text-muted-foreground">Theme</span>}
+              {!collapsed && <span className="text-xs text-sidebar-foreground/50">Theme</span>}
               <ThemeToggle />
             </div>
 
             {/* User Info and Logout */}
             <div
               className={cn(
-                "flex items-center pt-3 border-t border-sidebar-border",
-                collapsed ? "flex-col gap-2" : "justify-between",
+                "flex w-full items-center pt-3 border-t border-sidebar-border/50",
+                collapsed ? "justify-center" : "justify-between",
               )}
             >
               {!collapsed && (
                 <div className="flex flex-col">
                   <span className="text-sm font-medium">{user?.name}</span>
-                  <span className="text-xs text-muted-foreground capitalize">{user?.role}</span>
+                  <span className="text-xs text-sidebar-foreground/50 capitalize">{user?.role}</span>
                 </div>
               )}
               <Button
@@ -177,38 +181,43 @@ function AppLayoutContent({ user, logout }: { user: any; logout: () => void }) {
                 size={collapsed ? "icon-sm" : "sm"}
                 onClick={logout}
                 title="Log out"
-                className={collapsed ? "size-8" : ""}
+                className={cn(
+                  "shrink-0",
+                  collapsed && "size-8"
+                )}
               >
                 {collapsed ? <LogOut className="size-4" /> : "Log out"}
               </Button>
             </div>
 
             {/* Mobile Close */}
-            <div className="flex items-center justify-end md:hidden">
-              <SidebarTrigger>
-                <Button variant="ghost" size="sm">
-                  <XIcon className="size-4 mr-2" />
-                  Close
-                </Button>
-              </SidebarTrigger>
+            <div className={cn("flex items-center", collapsed ? "justify-center" : "justify-end", "md:hidden")}>
+              <SidebarCloseButton />
             </div>
           </div>
         </SidebarFooter>
       </Sidebar>
+
+      {/* Main Content Area */}
       <SidebarInset>
-        <div className="flex flex-1 flex-col">
-          <div className="flex h-14 items-center gap-2 border-b px-4 justify-between">
-            <div className="flex items-center gap-2">
-              <SidebarTrigger />
-              <SidebarCollapseTrigger />
-              <span className="text-sm font-medium">{pageTitle}</span>
-            </div>
-          </div>
-          <main className="flex-1 p-4">
+        {/* Top Header Bar */}
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background/80 backdrop-blur-sm px-4">
+          {/* Mobile: Menu toggle | Desktop: Collapse trigger when collapsed */}
+          <SidebarTrigger />
+          {/* Only show collapse trigger in header when sidebar is collapsed */}
+          {collapsed && <SidebarCollapseTrigger />}
+
+          <div className="h-4 w-px bg-border mx-1 hidden md:block" />
+          <span className="text-sm font-medium">{pageTitle}</span>
+        </header>
+
+        {/* Page Content */}
+        <main className="flex-1 overflow-auto">
+          <div className="container py-6">
             <Outlet />
-          </main>
-        </div>
+          </div>
+        </main>
       </SidebarInset>
-    </div>
+    </>
   );
 }
