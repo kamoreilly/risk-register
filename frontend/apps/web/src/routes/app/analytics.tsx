@@ -37,13 +37,7 @@ function AnalyticsPage() {
 
   return (
     <div className="p-8">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Analytics</h1>
-          <p className="text-muted-foreground">
-            Comprehensive risk metrics and trends
-          </p>
-        </div>
+      <div className="mb-6 flex items-center justify-end">
         <Select
           value={granularity}
           onValueChange={(value) => setGranularity(value as Granularity)}
