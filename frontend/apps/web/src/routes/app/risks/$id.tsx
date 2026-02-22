@@ -137,7 +137,7 @@ function RiskDetail() {
         description: description || undefined,
         status,
         severity,
-        category_id: categoryId || undefined,
+        category_id: categoryId,
         review_date: reviewDate || undefined,
       });
       toast.success("Risk updated");

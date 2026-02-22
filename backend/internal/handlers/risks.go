@@ -15,6 +15,27 @@ type RiskHandler struct {
 	audit      database.AuditLogRepository
 }
 
+// normalizeCategoryID handles empty string CategoryID by setting it to nil
+func (h *RiskHandler) normalizeCategoryID(categoryID *string) *string {
+	if categoryID != nil && *categoryID == "" {
+		return nil
+	}
+	return categoryID
+}
+
+// validateCategoryInput validates that the category exists if provided
+func (h *RiskHandler) validateCategoryInput(c *fiber.Ctx, categoryID *string) error {
+	if categoryID == nil {
+		return nil
+	}
+
+	cat, err := h.categories.FindByID(c.Context(), *categoryID)
+	if err != nil || cat == nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid category_id"})
+	}
+	return nil
+}
+
 func NewRiskHandler(risks database.RiskRepository, categories database.CategoryRepository, audit database.AuditLogRepository) *RiskHandler {
 	return &RiskHandler{risks: risks, categories: categories, audit: audit}
 }
@@ -82,13 +103,21 @@ func (h *RiskHandler) Create(c *fiber.Ctx) error {
 		input.Severity = models.SeverityMedium
 	}
 
+	// Normalize category ID first (handles empty string -> nil conversion)
+	categoryID := h.normalizeCategoryID(input.CategoryID)
+
+	// Validate category input (only if categoryID is not nil after normalization)
+	if err := h.validateCategoryInput(c, categoryID); err != nil {
+		return err
+	}
+
 	risk := &models.Risk{
 		Title:       input.Title,
 		Description: input.Description,
 		OwnerID:     input.OwnerID,
 		Status:      input.Status,
 		Severity:    input.Severity,
-		CategoryID:  input.CategoryID,
+		CategoryID:  categoryID,
 		CreatedBy:   user.UserID,
 		UpdatedBy:   user.UserID,
 	}
@@ -169,8 +198,34 @@ func (h *RiskHandler) Update(c *fiber.Ctx) error {
 		if risk.CategoryID != nil {
 			oldCategoryID = *risk.CategoryID
 		}
-		changes["category_id"] = map[string]any{"from": oldCategoryID, "to": *input.CategoryID}
-		risk.CategoryID = input.CategoryID
+
+		// Normalize category ID first (handles empty string -> nil for clearing category)
+		normalizedCategoryID := h.normalizeCategoryID(input.CategoryID)
+
+		// If empty string after normalization, user wants to clear the category
+		if normalizedCategoryID == nil {
+			risk.CategoryID = nil
+			risk.Category = nil
+			changes["category_id"] = map[string]any{"from": oldCategoryID, "to": nil}
+		} else {
+			// Validate category input before applying
+			if err := h.validateCategoryInput(c, normalizedCategoryID); err != nil {
+				return err
+			}
+			risk.CategoryID = normalizedCategoryID
+			// Update Category struct for response
+			cat, err := h.categories.FindByID(c.Context(), *normalizedCategoryID)
+			if err != nil {
+				// Log error but don't fail the update - the ID is valid due to validation above
+				// This handles cases where the category might be deleted concurrently
+				risk.Category = nil
+			} else {
+				risk.Category = cat
+			}
+			if normalizedCategoryID != nil {
+				changes["category_id"] = map[string]any{"from": oldCategoryID, "to": *normalizedCategoryID}
+			}
+		}
 	}
 	if input.ReviewDate != nil {
 		var oldReviewDate string

@@ -13,6 +13,16 @@ import (
 
 var ErrMitigationNotFound = errors.New("mitigation not found")
 
+// parseDate attempts to parse a date string in multiple formats
+func parseDate(dateStr string) (time.Time, error) {
+	// Try RFC3339 format first (e.g., "2006-01-02T15:04:05Z07:00")
+	if t, err := time.Parse(time.RFC3339, dateStr); err == nil {
+		return t, nil
+	}
+	// Try date-only format (e.g., "2006-01-02")
+	return time.Parse("2006-01-02", dateStr)
+}
+
 type MitigationRepository interface {
 	Create(ctx context.Context, input *models.CreateMitigationInput, createdBy string) (*models.Mitigation, error)
 	FindByID(ctx context.Context, id string) (*models.Mitigation, error)
@@ -42,7 +52,7 @@ func (r *mitigationRepository) Create(ctx context.Context, input *models.CreateM
 
 	// Parse due_date if provided
 	if input.DueDate != nil && *input.DueDate != "" {
-		dueDate, err := time.Parse(time.RFC3339, *input.DueDate)
+		dueDate, err := parseDate(*input.DueDate)
 		if err != nil {
 			return nil, err
 		}
@@ -166,7 +176,7 @@ func (r *mitigationRepository) Update(ctx context.Context, id string, input *mod
 		if *input.DueDate == "" {
 			mitigation.DueDate = nil
 		} else {
-			dueDate, err := time.Parse(time.RFC3339, *input.DueDate)
+			dueDate, err := parseDate(*input.DueDate)
 			if err != nil {
 				return nil, err
 			}

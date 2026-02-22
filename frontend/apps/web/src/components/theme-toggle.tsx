@@ -2,7 +2,6 @@ import { LaptopIcon, MoonIcon, SunIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import * as React from "react";
 
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,16 +21,17 @@ function ThemeToggle() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
-        <Button variant="outline" size="icon" aria-label="Toggle theme">
-          {!mounted ? (
-            <SunIcon className="size-4 opacity-70" />
-          ) : currentTheme === "dark" ? (
-            <MoonIcon className="size-4" />
-          ) : (
-            <SunIcon className="size-4" />
-          )}
-        </Button>
+      <DropdownMenuTrigger
+        aria-label="Toggle theme"
+        className="size-8 rounded-md border border-border bg-background hover:bg-muted hover:text-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 aria-expanded:bg-muted aria-expanded:text-foreground inline-flex items-center justify-center transition-all"
+      >
+        {!mounted ? (
+          <SunIcon className="size-4 opacity-70" />
+        ) : currentTheme === "dark" ? (
+          <MoonIcon className="size-4" />
+        ) : (
+          <SunIcon className="size-4" />
+        )}
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-40">

@@ -56,7 +56,7 @@ function NewRisk() {
         owner_id: user?.id || "",
         status,
         severity,
-        category_id: categoryId || undefined,
+        category_id: categoryId,
         review_date: reviewDate || undefined,
       });
       toast.success("Risk created");

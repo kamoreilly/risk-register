@@ -231,6 +231,68 @@ func TestCreateRiskHandler_InvalidInput(t *testing.T) {
 	}
 }
 
+func TestCreateRiskHandler_EmptyCategory(t *testing.T) {
+	app := fiber.New()
+	mockRiskRepo := &mockRiskRepo{risks: make(map[string]*models.Risk)}
+	mockCategoryRepo := &mockCategoryRepo{categories: make(map[string]*models.Category)}
+	mockAuditRepo := &mockAuditRepo{logs: []*models.AuditLog{}}
+	handler := NewRiskHandler(mockRiskRepo, mockCategoryRepo, mockAuditRepo)
+
+	app.Post("/risks", testAuthMiddleware, handler.Create)
+
+	// Empty category ID should be normalized to nil
+	body := map[string]interface{}{
+		"title":       "Test Risk",
+		"description": "Test description",
+		"owner_id":    "user-123",
+		"category_id": "",
+	}
+	jsonBody, _ := json.Marshal(body)
+
+	req := httptest.NewRequest("POST", "/risks", bytes.NewReader(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("request failed: %v", err)
+	}
+
+	if resp.StatusCode != 201 {
+		t.Errorf("expected status 201 for empty category, got %d", resp.StatusCode)
+	}
+}
+
+func TestCreateRiskHandler_InvalidCategory(t *testing.T) {
+	app := fiber.New()
+	mockRiskRepo := &mockRiskRepo{risks: make(map[string]*models.Risk)}
+	mockCategoryRepo := &mockCategoryRepo{categories: make(map[string]*models.Category)}
+	mockAuditRepo := &mockAuditRepo{logs: []*models.AuditLog{}}
+	handler := NewRiskHandler(mockRiskRepo, mockCategoryRepo, mockAuditRepo)
+
+	app.Post("/risks", testAuthMiddleware, handler.Create)
+
+	// Invalid category ID (non-existent)
+	body := map[string]interface{}{
+		"title":       "Test Risk",
+		"description": "Test description",
+		"owner_id":    "user-123",
+		"category_id": "invalid-category-id",
+	}
+	jsonBody, _ := json.Marshal(body)
+
+	req := httptest.NewRequest("POST", "/risks", bytes.NewReader(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("request failed: %v", err)
+	}
+
+	if resp.StatusCode != 400 {
+		t.Errorf("expected status 400 for invalid category, got %d", resp.StatusCode)
+	}
+}
+
 func TestGetRiskHandler_ValidID(t *testing.T) {
 	app := fiber.New()
 	mockRiskRepo := &mockRiskRepo{risks: make(map[string]*models.Risk)}

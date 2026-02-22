@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"log"
+
 	"backend/internal/database"
 	"backend/internal/middleware"
 	"backend/internal/models"
@@ -66,6 +68,7 @@ func (h *MitigationHandler) Create(c *fiber.Ctx) error {
 
 	mitigation, err := h.mitigationRepo.Create(c.Context(), &input, user.UserID)
 	if err != nil {
+		log.Printf("Failed to create mitigation: %v", err)
 		return c.Status(500).JSON(fiber.Map{"error": "failed to create mitigation"})
 	}
 

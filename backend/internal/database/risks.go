@@ -51,13 +51,19 @@ func (r *riskRepository) Create(ctx context.Context, risk *models.Risk) error {
 
 func (r *riskRepository) FindByID(ctx context.Context, id string) (*models.Risk, error) {
 	query := `
-		SELECT id, title, description, owner_id, status, severity, category_id, review_date, created_at, updated_at, created_by, updated_by
-		FROM risks WHERE id = $1
+		SELECT r.id, r.title, r.description, r.owner_id, r.status, r.severity, r.category_id, r.review_date, r.created_at, r.updated_at, r.created_by, r.updated_by,
+		       c.id, c.name, c.description
+		FROM risks r
+		LEFT JOIN categories c ON r.category_id = c.id
+		WHERE r.id = $1
 	`
 	risk := &models.Risk{}
+	var catID, catName, catDesc sql.NullString
+
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&risk.ID, &risk.Title, &risk.Description, &risk.OwnerID, &risk.Status, &risk.Severity,
 		&risk.CategoryID, &risk.ReviewDate, &risk.CreatedAt, &risk.UpdatedAt, &risk.CreatedBy, &risk.UpdatedBy,
+		&catID, &catName, &catDesc,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -65,6 +71,15 @@ func (r *riskRepository) FindByID(ctx context.Context, id string) (*models.Risk,
 		}
 		return nil, err
 	}
+
+	if catID.Valid {
+		risk.Category = &models.Category{
+			ID:          catID.String,
+			Name:        catName.String,
+			Description: catDesc.String,
+		}
+	}
+
 	return risk, nil
 }
 
@@ -85,33 +100,33 @@ func (r *riskRepository) List(ctx context.Context, params *models.RiskListParams
 	argNum := 1
 
 	if params.Status != nil {
-		where += fmt.Sprintf(" AND status = $%d", argNum)
+		where += fmt.Sprintf(" AND r.status = $%d", argNum)
 		args = append(args, *params.Status)
 		argNum++
 	}
 	if params.Severity != nil {
-		where += fmt.Sprintf(" AND severity = $%d", argNum)
+		where += fmt.Sprintf(" AND r.severity = $%d", argNum)
 		args = append(args, *params.Severity)
 		argNum++
 	}
 	if params.CategoryID != nil {
-		where += fmt.Sprintf(" AND category_id = $%d", argNum)
+		where += fmt.Sprintf(" AND r.category_id = $%d", argNum)
 		args = append(args, *params.CategoryID)
 		argNum++
 	}
 	if params.OwnerID != nil {
-		where += fmt.Sprintf(" AND owner_id = $%d", argNum)
+		where += fmt.Sprintf(" AND r.owner_id = $%d", argNum)
 		args = append(args, *params.OwnerID)
 		argNum++
 	}
 	if params.Search != "" {
-		where += fmt.Sprintf(" AND (title ILIKE $%d OR description ILIKE $%d)", argNum, argNum)
+		where += fmt.Sprintf(" AND (r.title ILIKE $%d OR r.description ILIKE $%d)", argNum, argNum)
 		args = append(args, "%"+params.Search+"%", "%"+params.Search+"%")
 		argNum++
 	}
 
 	// Get total count
-	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM risks %s", where)
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM risks r %s", where)
 	var total int
 	err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total)
 	if err != nil {
@@ -119,9 +134,17 @@ func (r *riskRepository) List(ctx context.Context, params *models.RiskListParams
 	}
 
 	// Build ORDER BY
-	orderBy := "created_at"
+	orderBy := "r.created_at"
 	if params.Sort != "" {
-		orderBy = params.Sort
+		// Prevent SQL injection by allowing only specific fields
+		switch params.Sort {
+		case "title", "status", "severity", "category_id", "review_date", "updated_at":
+			orderBy = "r." + params.Sort
+		case "created_at":
+			orderBy = "r.created_at"
+		default:
+			orderBy = "r.created_at"
+		}
 	}
 	orderDir := "DESC"
 	if params.Order == "asc" {
@@ -131,8 +154,11 @@ func (r *riskRepository) List(ctx context.Context, params *models.RiskListParams
 	// Get paginated results
 	offset := (params.Page - 1) * params.Limit
 	query := fmt.Sprintf(`
-		SELECT id, title, description, owner_id, status, severity, category_id, review_date, created_at, updated_at, created_by, updated_by
-		FROM risks %s ORDER BY %s %s LIMIT $%d OFFSET $%d
+		SELECT r.id, r.title, r.description, r.owner_id, r.status, r.severity, r.category_id, r.review_date, r.created_at, r.updated_at, r.created_by, r.updated_by,
+		       c.id, c.name, c.description
+		FROM risks r
+		LEFT JOIN categories c ON r.category_id = c.id
+		%s ORDER BY %s %s LIMIT $%d OFFSET $%d
 	`, where, orderBy, orderDir, argNum, argNum+1)
 	args = append(args, params.Limit, offset)
 
@@ -145,12 +171,21 @@ func (r *riskRepository) List(ctx context.Context, params *models.RiskListParams
 	var risks []*models.Risk
 	for rows.Next() {
 		risk := &models.Risk{}
+		var catID, catName, catDesc sql.NullString
 		err := rows.Scan(
 			&risk.ID, &risk.Title, &risk.Description, &risk.OwnerID, &risk.Status, &risk.Severity,
 			&risk.CategoryID, &risk.ReviewDate, &risk.CreatedAt, &risk.UpdatedAt, &risk.CreatedBy, &risk.UpdatedBy,
+			&catID, &catName, &catDesc,
 		)
 		if err != nil {
 			return nil, err
+		}
+		if catID.Valid {
+			risk.Category = &models.Category{
+				ID:          catID.String,
+				Name:        catName.String,
+				Description: catDesc.String,
+			}
 		}
 		risks = append(risks, risk)
 	}
