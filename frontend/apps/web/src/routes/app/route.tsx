@@ -5,6 +5,7 @@ import {
   CalendarIcon,
   FolderIcon,
   LayoutGridIcon,
+  LineChartIcon,
   LogOut,
   ShieldCheckIcon,
   ShieldIcon,
@@ -46,6 +47,7 @@ type NavItem = {
 
 const ADMIN_NAV_ITEMS: NavItem[] = [
   { to: "/app", label: "Dashboard", icon: BarChart3Icon, exact: true },
+  { to: "/app/analytics", label: "Analytics", icon: LineChartIcon },
   { to: "/app/risks", label: "Risks", icon: ShieldIcon },
   { to: "/app/board", label: "Board", icon: LayoutGridIcon },
   { to: "/app/calendar", label: "Calendar", icon: CalendarIcon },
@@ -55,6 +57,7 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
 
 const MEMBER_NAV_ITEMS: NavItem[] = [
   { to: "/app", label: "Dashboard", icon: BarChart3Icon, exact: true },
+  { to: "/app/analytics", label: "Analytics", icon: LineChartIcon },
   { to: "/app/risks", label: "Risks", icon: ShieldIcon },
   { to: "/app/board", label: "Board", icon: LayoutGridIcon },
   { to: "/app/calendar", label: "Calendar", icon: CalendarIcon },
@@ -96,6 +99,7 @@ function AppLayoutContent({ user, logout }: { user: any; logout: () => void }) {
 
   const getPageTitle = (pathname: string) => {
     if (pathname === "/app") return "Dashboard";
+    if (pathname.startsWith("/app/analytics")) return "Analytics";
     if (pathname.startsWith("/app/board")) return "Board";
     if (pathname.startsWith("/app/calendar")) return "Calendar";
     if (pathname.startsWith("/app/risks")) return "Risks";
