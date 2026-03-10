@@ -68,6 +68,11 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	protected.Post("/frameworks", middleware.RequireAdmin, s.frameworkHandler.Create)
 	protected.Put("/frameworks/:id", middleware.RequireAdmin, s.frameworkHandler.Update)
 	protected.Delete("/frameworks/:id", middleware.RequireAdmin, s.frameworkHandler.Delete)
+	protected.Get("/controls", s.frameworkControlHandler.List)
+	protected.Get("/controls/:id/risks", s.frameworkControlHandler.ListLinkedRisks)
+	protected.Post("/controls", middleware.RequireAdmin, s.frameworkControlHandler.Create)
+	protected.Put("/controls/:id", middleware.RequireAdmin, s.frameworkControlHandler.Update)
+	protected.Delete("/controls/:id", middleware.RequireAdmin, s.frameworkControlHandler.Delete)
 
 	// Nested control routes under a specific risk
 	risks.Get("/:riskId/controls", s.controlHandler.ListControls)

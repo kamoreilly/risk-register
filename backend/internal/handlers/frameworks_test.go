@@ -71,8 +71,8 @@ func (m *mockFrameworkRepo) Delete(ctx context.Context, id string) error {
 }
 
 type mockControlRepo struct {
-	controls      map[string]*models.RiskFrameworkControl
-	frameworkRepo *mockFrameworkRepo
+	controls       map[string]*models.RiskFrameworkControl
+	definitionRepo *mockFrameworkControlRepo
 }
 
 func (m *mockControlRepo) ListByRiskID(ctx context.Context, riskID string) ([]*models.RiskFrameworkControl, error) {
@@ -86,28 +86,22 @@ func (m *mockControlRepo) ListByRiskID(ctx context.Context, riskID string) ([]*m
 }
 
 func (m *mockControlRepo) LinkControl(ctx context.Context, riskID string, input *models.LinkControlInput, createdBy string) (*models.RiskFrameworkControl, error) {
-	// Verify framework exists
-	framework, err := m.frameworkRepo.GetByID(ctx, input.FrameworkID)
+	definition, err := m.definitionRepo.GetByID(ctx, input.FrameworkControlID)
 	if err != nil {
-		// Real repo would fail foreign key constraint or we check it manually
-		// For mock, let's allow it or fail if we want strictness.
-		// The handler doesn't check framework existence explicitly, it relies on repo.
-		// Let's assume input is valid or just use a default name if not found.
-	}
-	frameworkName := "Unknown Framework"
-	if framework != nil {
-		frameworkName = framework.Name
+		return nil, err
 	}
 
 	control := &models.RiskFrameworkControl{
-		ID:            uuid.New().String(),
-		RiskID:        riskID,
-		FrameworkID:   input.FrameworkID,
-		FrameworkName: frameworkName,
-		ControlRef:    input.ControlRef,
-		Notes:         input.Notes,
-		CreatedBy:     createdBy,
-		CreatedAt:     time.Now(),
+		ID:                 uuid.New().String(),
+		RiskID:             riskID,
+		FrameworkControlID: definition.ID,
+		FrameworkID:        definition.FrameworkID,
+		FrameworkName:      definition.FrameworkName,
+		ControlRef:         definition.ControlRef,
+		ControlTitle:       definition.Title,
+		Notes:              input.Notes,
+		CreatedBy:          createdBy,
+		CreatedAt:          time.Now(),
 	}
 	m.controls[control.ID] = control
 	return control, nil
@@ -115,7 +109,77 @@ func (m *mockControlRepo) LinkControl(ctx context.Context, riskID string, input 
 
 func (m *mockControlRepo) UnlinkControl(ctx context.Context, id string) error {
 	if _, ok := m.controls[id]; !ok {
-		return database.ErrFrameworkNotFound // Handler checks for this error
+		return database.ErrFrameworkControlNotFound
+	}
+	delete(m.controls, id)
+	return nil
+}
+
+type mockFrameworkControlRepo struct {
+	controls map[string]*models.FrameworkControl
+}
+
+func (m *mockFrameworkControlRepo) List(ctx context.Context, frameworkID, search string) ([]*models.FrameworkControl, error) {
+	var list []*models.FrameworkControl
+	for _, control := range m.controls {
+		if frameworkID != "" && control.FrameworkID != frameworkID {
+			continue
+		}
+		list = append(list, control)
+	}
+	return list, nil
+}
+
+func (m *mockFrameworkControlRepo) GetByID(ctx context.Context, id string) (*models.FrameworkControl, error) {
+	control, ok := m.controls[id]
+	if !ok {
+		return nil, database.ErrFrameworkControlNotFound
+	}
+	return control, nil
+}
+
+func (m *mockFrameworkControlRepo) ListLinkedRisks(ctx context.Context, id string) ([]*models.ControlLinkedRisk, error) {
+	if _, ok := m.controls[id]; !ok {
+		return nil, database.ErrFrameworkControlNotFound
+	}
+	return []*models.ControlLinkedRisk{}, nil
+}
+
+func (m *mockFrameworkControlRepo) Create(ctx context.Context, input *models.CreateFrameworkControlInput) (*models.FrameworkControl, error) {
+	control := &models.FrameworkControl{
+		ID:          uuid.New().String(),
+		FrameworkID: input.FrameworkID,
+		ControlRef:  input.ControlRef,
+		Title:       input.Title,
+		Description: input.Description,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+	m.controls[control.ID] = control
+	return control, nil
+}
+
+func (m *mockFrameworkControlRepo) Update(ctx context.Context, id string, input *models.UpdateFrameworkControlInput) (*models.FrameworkControl, error) {
+	control, ok := m.controls[id]
+	if !ok {
+		return nil, database.ErrFrameworkControlNotFound
+	}
+	if input.ControlRef != nil {
+		control.ControlRef = *input.ControlRef
+	}
+	if input.Title != nil {
+		control.Title = *input.Title
+	}
+	if input.Description != nil {
+		control.Description = *input.Description
+	}
+	control.UpdatedAt = time.Now()
+	return control, nil
+}
+
+func (m *mockFrameworkControlRepo) Delete(ctx context.Context, id string) error {
+	if _, ok := m.controls[id]; !ok {
+		return database.ErrFrameworkControlNotFound
 	}
 	delete(m.controls, id)
 	return nil
@@ -124,11 +188,7 @@ func (m *mockControlRepo) UnlinkControl(ctx context.Context, id string) error {
 func TestFrameworkHandler(t *testing.T) {
 	app := fiber.New()
 	mockFwRepo := &mockFrameworkRepo{frameworks: make(map[string]*models.Framework)}
-	mockCtrlRepo := &mockControlRepo{
-		controls:      make(map[string]*models.RiskFrameworkControl),
-		frameworkRepo: mockFwRepo,
-	}
-	handler := NewFrameworkHandler(mockFwRepo, mockCtrlRepo)
+	handler := NewFrameworkHandler(mockFwRepo)
 
 	// Setup routes
 	app.Get("/frameworks", testAuthMiddleware, handler.List)
@@ -172,7 +232,7 @@ func TestFrameworkHandler(t *testing.T) {
 		if resp.StatusCode != 200 {
 			t.Errorf("expected status 200, got %d", resp.StatusCode)
 		}
-		
+
 		var response map[string][]*models.Framework
 		json.NewDecoder(resp.Body).Decode(&response)
 		if len(response["data"]) != 1 {
@@ -185,8 +245,8 @@ func TestControlHandler(t *testing.T) {
 	app := fiber.New()
 	mockFwRepo := &mockFrameworkRepo{frameworks: make(map[string]*models.Framework)}
 	mockCtrlRepo := &mockControlRepo{
-		controls:      make(map[string]*models.RiskFrameworkControl),
-		frameworkRepo: mockFwRepo,
+		controls:       make(map[string]*models.RiskFrameworkControl),
+		definitionRepo: &mockFrameworkControlRepo{controls: make(map[string]*models.FrameworkControl)},
 	}
 	handler := NewControlHandler(mockCtrlRepo)
 
@@ -195,17 +255,24 @@ func TestControlHandler(t *testing.T) {
 	app.Post("/risks/:riskId/controls", testAuthMiddleware, handler.LinkControl)
 	app.Delete("/risks/:riskId/controls/:id", testAuthMiddleware, handler.UnlinkControl)
 
-	// Create a framework first
+	// Create a framework and control definition first
 	fw := &models.Framework{ID: uuid.New().String(), Name: "NIST"}
 	mockFwRepo.frameworks[fw.ID] = fw
+	definition := &models.FrameworkControl{
+		ID:            uuid.New().String(),
+		FrameworkID:   fw.ID,
+		FrameworkName: fw.Name,
+		ControlRef:    "AC-1",
+		Title:         "Access Control Policy",
+	}
+	mockCtrlRepo.definitionRepo.controls[definition.ID] = definition
 
 	riskID := uuid.New().String()
 
 	t.Run("Link Control", func(t *testing.T) {
 		input := models.LinkControlInput{
-			FrameworkID: fw.ID,
-			ControlRef:  "AC-1",
-			Notes:       "Access Control Policy",
+			FrameworkControlID: definition.ID,
+			Notes:              "Access Control Policy",
 		}
 		body, _ := json.Marshal(input)
 		req := httptest.NewRequest("POST", "/risks/"+riskID+"/controls", bytes.NewReader(body))
@@ -222,8 +289,8 @@ func TestControlHandler(t *testing.T) {
 
 		var linked models.RiskFrameworkControl
 		json.NewDecoder(resp.Body).Decode(&linked)
-		if linked.ControlRef != input.ControlRef {
-			t.Errorf("expected control ref %s, got %s", input.ControlRef, linked.ControlRef)
+		if linked.ControlRef != definition.ControlRef {
+			t.Errorf("expected control ref %s, got %s", definition.ControlRef, linked.ControlRef)
 		}
 		if linked.FrameworkName != fw.Name {
 			t.Errorf("expected framework name %s, got %s", fw.Name, linked.FrameworkName)

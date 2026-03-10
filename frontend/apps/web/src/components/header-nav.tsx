@@ -12,16 +12,23 @@ interface HeaderNavProps {
   fullWidth?: boolean;
 }
 
-const ADMIN_LINKS = [
+type HeaderNavLink = {
+  to: string;
+  label: string;
+  exact?: boolean;
+};
+
+const ADMIN_LINKS: HeaderNavLink[] = [
   { to: "/app", label: "Dashboard", exact: true },
   { to: "/app/board", label: "Board" },
   { to: "/app/calendar", label: "Calendar" },
   { to: "/app/risks", label: "Risks" },
   { to: "/app/frameworks", label: "Frameworks" },
+  { to: "/app/controls", label: "Controls" },
   { to: "/app/categories", label: "Categories" },
 ] as const;
 
-const MEMBER_LINKS = [
+const MEMBER_LINKS: HeaderNavLink[] = [
   { to: "/app", label: "Dashboard", exact: true },
   { to: "/app/board", label: "Board" },
   { to: "/app/calendar", label: "Calendar" },

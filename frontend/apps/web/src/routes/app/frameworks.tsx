@@ -168,11 +168,9 @@ function Frameworks() {
                     )}
                 </div>
                 <DropdownMenu>
-                  <DropdownMenuTrigger>
-                    <Button variant="ghost" size="icon" className="-mr-2 h-8 w-8">
-                      <MoreHorizontalIcon className="h-4 w-4" />
-                      <span className="sr-only">Actions</span>
-                    </Button>
+                  <DropdownMenuTrigger className="-mr-2 flex size-8 items-center justify-center rounded-md hover:bg-muted hover:text-foreground dark:hover:bg-muted/50 aria-expanded:bg-muted aria-expanded:text-foreground">
+                    <MoreHorizontalIcon className="h-4 w-4" />
+                    <span className="sr-only">Actions</span>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => handleEdit(framework)}>

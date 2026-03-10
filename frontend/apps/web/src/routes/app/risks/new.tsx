@@ -3,14 +3,8 @@ import * as React from "react";
 
 import { useCreateRisk, useCategories } from "@/hooks/useRisks";
 import { useAuth } from "@/hooks/useAuth";
-import { Button, buttonVariants } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -20,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { RiskStatus, RiskSeverity } from "@/types/risk";
 
@@ -69,7 +62,10 @@ function NewRisk() {
   return (
     <div className="p-8 max-w-2xl mx-auto">
       <div className="mb-6">
-        <Link to="/app/risks" className="text-sm text-muted-foreground hover:underline mb-2 block">
+        <Link
+          to="/app/risks"
+          className="text-sm text-muted-foreground hover:underline mb-2 block"
+        >
           &larr; Back to Risks
         </Link>
         <h1 className="text-2xl font-bold">New Risk</h1>
@@ -104,7 +100,10 @@ function NewRisk() {
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Status</Label>
-                <Select value={status} onValueChange={(v) => setStatus(v as RiskStatus)}>
+                <Select
+                  value={status}
+                  onValueChange={(v) => setStatus(v as RiskStatus)}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -119,7 +118,10 @@ function NewRisk() {
 
               <div className="grid gap-2">
                 <Label>Severity</Label>
-                <Select value={severity} onValueChange={(v) => setSeverity(v as RiskSeverity)}>
+                <Select
+                  value={severity}
+                  onValueChange={(v) => setSeverity(v as RiskSeverity)}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -136,14 +138,19 @@ function NewRisk() {
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Category</Label>
-                <Select value={categoryId} onValueChange={setCategoryId}>
+                <Select
+                  value={categoryId}
+                  onValueChange={(value) => setCategoryId(value ?? "")}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">None</SelectItem>
                     {categories?.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -161,7 +168,9 @@ function NewRisk() {
 
             <div className="flex justify-end gap-2 pt-4">
               <Link to="/app/risks">
-                <Button type="button" variant="outline">Cancel</Button>
+                <Button type="button" variant="outline">
+                  Cancel
+                </Button>
               </Link>
               <Button type="submit" disabled={createRisk.isPending}>
                 {createRisk.isPending ? "Creating..." : "Create Risk"}

@@ -7,8 +7,8 @@ import { type ReactNode } from 'react';
 
 // Create a custom render function that includes providers
 export function renderWithProviders(
-  ui: ReactNode,
-  { route = '/', preloadedState = {} } = {}
+  _ui: ReactNode,
+  { route = '/', preloadedState: _preloadedState = {} } = {}
 ) {
   const queryClient = new QueryClient({
     defaultOptions: {

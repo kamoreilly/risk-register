@@ -2,19 +2,23 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import * as React from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
-import { useRisk, useUpdateRisk, useDeleteRisk, useCategories } from "@/hooks/useRisks";
+import {
+  useRisk,
+  useUpdateRisk,
+  useDeleteRisk,
+  useCategories,
+} from "@/hooks/useRisks";
 import {
   useMitigations,
   useCreateMitigation,
   useDeleteMitigation,
 } from "@/hooks/useMitigations";
 import {
-  useFrameworks,
+  useControls,
   useRiskControls,
   useLinkControl,
   useUnlinkControl,
-} from "@/hooks/useFrameworks";
-import { useAuth } from "@/hooks/useAuth";
+} from "@/hooks/useControls";
 import { useSummarize, useDraftMitigation } from "@/hooks/useAI";
 import { useAuditLogs } from "@/hooks/useAudit";
 import { api } from "@/lib/api";
@@ -69,7 +73,6 @@ const MITIGATION_STATUS_COLORS: Record<MitigationStatus, string> = {
 
 function RiskDetail() {
   const { id } = Route.useParams();
-  const { user } = useAuth();
   const navigate = Route.useNavigate();
   const queryClient = useQueryClient();
 
@@ -79,12 +82,13 @@ function RiskDetail() {
   const deleteRisk = useDeleteRisk();
 
   // Mitigation hooks
-  const { data: mitigations, isLoading: mitigationsLoading } = useMitigations(id);
+  const { data: mitigations, isLoading: mitigationsLoading } =
+    useMitigations(id);
   const createMitigation = useCreateMitigation(id);
   const deleteMitigation = useDeleteMitigation(id);
 
   // Framework control hooks
-  const { data: frameworks } = useFrameworks();
+  const { data: availableControls } = useControls();
   const { data: controls, isLoading: controlsLoading } = useRiskControls(id);
   const linkControl = useLinkControl(id);
   const unlinkControl = useUnlinkControl(id);
@@ -102,16 +106,19 @@ function RiskDetail() {
 
   // Mitigation state
   const [isAddingMitigation, setIsAddingMitigation] = React.useState(false);
-  const [editingMitigationId, setEditingMitigationId] = React.useState<string | null>(null);
+  const [editingMitigationId, setEditingMitigationId] = React.useState<
+    string | null
+  >(null);
   const [mitigationDescription, setMitigationDescription] = React.useState("");
   const [mitigationOwner, setMitigationOwner] = React.useState("");
-  const [mitigationStatus, setMitigationStatus] = React.useState<MitigationStatus>("planned");
+  const [mitigationStatus, setMitigationStatus] =
+    React.useState<MitigationStatus>("planned");
   const [mitigationDueDate, setMitigationDueDate] = React.useState("");
 
   // Control state
   const [isAddingControl, setIsAddingControl] = React.useState(false);
   const [controlFrameworkId, setControlFrameworkId] = React.useState("");
-  const [controlRef, setControlRef] = React.useState("");
+  const [frameworkControlId, setFrameworkControlId] = React.useState("");
   const [controlNotes, setControlNotes] = React.useState("");
 
   // AI state
@@ -129,6 +136,42 @@ function RiskDetail() {
       setReviewDate(risk.review_date ? risk.review_date.split("T")[0] : "");
     }
   }, [risk]);
+
+  // Compute framework options before early returns (needed for useEffect below)
+  const frameworkOptions = Array.from(
+    new Map(
+      (availableControls || []).map((control) => [
+        control.framework_id,
+        control.framework_name,
+      ]),
+    ).entries(),
+  ).map(([frameworkId, frameworkName]) => ({ frameworkId, frameworkName }));
+
+  const selectableControls = (availableControls || []).filter((control) => {
+    if (!controlFrameworkId) {
+      return true;
+    }
+    return control.framework_id === controlFrameworkId;
+  });
+
+  // These useEffect hooks MUST be before any early returns to avoid "Rendered more hooks than during the previous render" error
+  React.useEffect(() => {
+    if (!isAddingControl) {
+      return;
+    }
+    if (controlFrameworkId) {
+      return;
+    }
+    if (frameworkOptions.length === 1) {
+      setControlFrameworkId(frameworkOptions[0].frameworkId);
+    }
+  }, [controlFrameworkId, frameworkOptions, isAddingControl]);
+
+  React.useEffect(() => {
+    if (!frameworkControlId && selectableControls.length === 1) {
+      setFrameworkControlId(selectableControls[0].id);
+    }
+  }, [frameworkControlId, selectableControls]);
 
   const handleSave = async () => {
     try {
@@ -194,7 +237,9 @@ function RiskDetail() {
     setMitigationDescription(mitigation.description);
     setMitigationOwner(mitigation.owner || "");
     setMitigationStatus(mitigation.status);
-    setMitigationDueDate(mitigation.due_date ? mitigation.due_date.split("T")[0] : "");
+    setMitigationDueDate(
+      mitigation.due_date ? mitigation.due_date.split("T")[0] : "",
+    );
     setIsAddingMitigation(false);
   };
 
@@ -235,26 +280,21 @@ function RiskDetail() {
 
   // Control handlers
   const resetControlForm = () => {
-    setControlFrameworkId("");
-    setControlRef("");
+    setControlFrameworkId(frameworkOptions[0]?.frameworkId ?? "");
+    setFrameworkControlId("");
     setControlNotes("");
     setIsAddingControl(false);
   };
 
   const handleAddControl = async () => {
-    if (!controlFrameworkId) {
-      toast.error("Framework is required");
-      return;
-    }
-    if (!controlRef.trim()) {
-      toast.error("Control reference is required");
+    if (!frameworkControlId) {
+      toast.error("Control is required");
       return;
     }
 
     try {
       await linkControl.mutateAsync({
-        framework_id: controlFrameworkId,
-        control_ref: controlRef,
+        framework_control_id: frameworkControlId,
         notes: controlNotes || undefined,
       });
       toast.success("Control linked");
@@ -265,7 +305,12 @@ function RiskDetail() {
   };
 
   const handleDeleteControl = async (control: RiskFrameworkControl) => {
-    if (!confirm(`Are you sure you want to unlink "${control.framework_name}: ${control.control_ref}"?`)) return;
+    if (
+      !confirm(
+        `Are you sure you want to unlink "${control.framework_name}: ${control.control_ref}"?`,
+      )
+    )
+      return;
 
     try {
       await unlinkControl.mutateAsync(control.id);
@@ -322,7 +367,10 @@ function RiskDetail() {
       <div className="p-8">
         <div className="text-center text-muted-foreground">Risk not found</div>
         <div className="text-center mt-4">
-          <Link to="/app/risks" className={cn(buttonVariants({ variant: "outline" }))}>
+          <Link
+            to="/app/risks"
+            className={cn(buttonVariants({ variant: "outline" }))}
+          >
             Back to Risks
           </Link>
         </div>
@@ -334,21 +382,38 @@ function RiskDetail() {
     <div className="p-8 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <Link to="/app/risks" className="text-sm text-muted-foreground hover:underline mb-2 block">
+          <Link
+            to="/app/risks"
+            className="text-sm text-muted-foreground hover:underline mb-2 block"
+          >
             &larr; Back to Risks
           </Link>
-          <h1 className="text-2xl font-bold">{isEditing ? "Edit Risk" : risk.title}</h1>
+          <h1 className="text-2xl font-bold">
+            {isEditing ? "Edit Risk" : risk.title}
+          </h1>
         </div>
         <div className="flex gap-2">
           {isEditing ? (
             <>
-              <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
-              <Button onClick={handleSave} disabled={updateRisk.isPending}>Save</Button>
+              <Button variant="outline" onClick={() => setIsEditing(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSave} disabled={updateRisk.isPending}>
+                Save
+              </Button>
             </>
           ) : (
             <>
-              <Button variant="outline" onClick={() => setIsEditing(true)}>Edit</Button>
-              <Button variant="destructive" onClick={handleDelete} disabled={deleteRisk.isPending}>Delete</Button>
+              <Button variant="outline" onClick={() => setIsEditing(true)}>
+                Edit
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={deleteRisk.isPending}
+              >
+                Delete
+              </Button>
             </>
           )}
         </div>
@@ -357,10 +422,20 @@ function RiskDetail() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <span className={cn("px-2 py-1 rounded text-xs font-medium", STATUS_COLORS[risk.status])}>
+            <span
+              className={cn(
+                "px-2 py-1 rounded text-xs font-medium",
+                STATUS_COLORS[risk.status],
+              )}
+            >
               {risk.status}
             </span>
-            <span className={cn("px-2 py-1 rounded text-xs font-medium", SEVERITY_COLORS[risk.severity])}>
+            <span
+              className={cn(
+                "px-2 py-1 rounded text-xs font-medium",
+                SEVERITY_COLORS[risk.severity],
+              )}
+            >
               {risk.severity}
             </span>
           </div>
@@ -370,7 +445,11 @@ function RiskDetail() {
             <>
               <div className="grid gap-2">
                 <Label htmlFor="title">Title</Label>
-                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} />
+                <Input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="description">Description</Label>
@@ -384,7 +463,10 @@ function RiskDetail() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label>Status</Label>
-                  <Select value={status} onValueChange={(v) => setStatus(v as RiskStatus)}>
+                  <Select
+                    value={status}
+                    onValueChange={(v) => setStatus(v as RiskStatus)}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -398,7 +480,10 @@ function RiskDetail() {
                 </div>
                 <div className="grid gap-2">
                   <Label>Severity</Label>
-                  <Select value={severity} onValueChange={(v) => setSeverity(v as RiskSeverity)}>
+                  <Select
+                    value={severity}
+                    onValueChange={(v) => setSeverity(v as RiskSeverity)}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -414,21 +499,30 @@ function RiskDetail() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label>Category</Label>
-                  <Select value={categoryId} onValueChange={setCategoryId}>
+                  <Select
+                    value={categoryId}
+                    onValueChange={(value) => setCategoryId(value ?? "")}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">None</SelectItem>
                       {categories?.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="grid gap-2">
                   <Label>Review Date</Label>
-                  <Input type="date" value={reviewDate} onChange={(e) => setReviewDate(e.target.value)} />
+                  <Input
+                    type="date"
+                    value={reviewDate}
+                    onChange={(e) => setReviewDate(e.target.value)}
+                  />
                 </div>
               </div>
             </>
@@ -446,7 +540,9 @@ function RiskDetail() {
                     {summarize.isPending ? "Generating..." : "Summarize"}
                   </Button>
                 </div>
-                <p className="text-muted-foreground">{risk.description || "No description"}</p>
+                <p className="text-muted-foreground">
+                  {risk.description || "No description"}
+                </p>
               </div>
               {aiSummary && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -457,12 +553,16 @@ function RiskDetail() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h3 className="font-medium mb-2">Category</h3>
-                  <p className="text-muted-foreground">{risk.category?.name || "Uncategorized"}</p>
+                  <p className="text-muted-foreground">
+                    {risk.category?.name || "Uncategorized"}
+                  </p>
                 </div>
                 <div>
                   <h3 className="font-medium mb-2">Review Date</h3>
                   <p className="text-muted-foreground">
-                    {risk.review_date ? new Date(risk.review_date).toLocaleDateString() : "Not set"}
+                    {risk.review_date
+                      ? new Date(risk.review_date).toLocaleDateString()
+                      : "Not set"}
                   </p>
                 </div>
               </div>
@@ -510,7 +610,9 @@ function RiskDetail() {
                       onClick={handleDraftMitigation}
                       disabled={draftMitigation.isPending}
                     >
-                      {draftMitigation.isPending ? "Drafting..." : "Draft with AI"}
+                      {draftMitigation.isPending
+                        ? "Drafting..."
+                        : "Draft with AI"}
                     </Button>
                   )}
                 </div>
@@ -536,7 +638,9 @@ function RiskDetail() {
                   <Label>Status</Label>
                   <Select
                     value={mitigationStatus}
-                    onValueChange={(v) => setMitigationStatus(v as MitigationStatus)}
+                    onValueChange={(v) =>
+                      setMitigationStatus(v as MitigationStatus)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -564,7 +668,11 @@ function RiskDetail() {
                   Cancel
                 </Button>
                 <Button
-                  onClick={isAddingMitigation ? handleAddMitigation : handleUpdateMitigation}
+                  onClick={
+                    isAddingMitigation
+                      ? handleAddMitigation
+                      : handleUpdateMitigation
+                  }
                   disabled={createMitigation.isPending}
                 >
                   {isAddingMitigation ? "Add" : "Save"}
@@ -590,7 +698,7 @@ function RiskDetail() {
                       <span
                         className={cn(
                           "px-2 py-0.5 rounded text-xs font-medium",
-                          MITIGATION_STATUS_COLORS[mitigation.status]
+                          MITIGATION_STATUS_COLORS[mitigation.status],
                         )}
                       >
                         {mitigation.status.replace("_", " ")}
@@ -602,7 +710,10 @@ function RiskDetail() {
                         <span>Owner: {mitigation.owner}</span>
                       )}
                       {mitigation.due_date && (
-                        <span>Due: {new Date(mitigation.due_date).toLocaleDateString()}</span>
+                        <span>
+                          Due:{" "}
+                          {new Date(mitigation.due_date).toLocaleDateString()}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -611,7 +722,10 @@ function RiskDetail() {
                       variant="outline"
                       size="sm"
                       onClick={() => startEditMitigation(mitigation)}
-                      disabled={editingMitigationId !== null && editingMitigationId !== mitigation.id}
+                      disabled={
+                        editingMitigationId !== null &&
+                        editingMitigationId !== mitigation.id
+                      }
                     >
                       Edit
                     </Button>
@@ -648,7 +762,13 @@ function RiskDetail() {
               </CardDescription>
             </div>
             {!isAddingControl && (
-              <Button onClick={() => setIsAddingControl(true)}>
+              <Button
+                onClick={() => {
+                  setControlFrameworkId(frameworkOptions[0]?.frameworkId ?? "");
+                  setFrameworkControlId("");
+                  setIsAddingControl(true);
+                }}
+              >
                 Link Control
               </Button>
             )}
@@ -664,28 +784,46 @@ function RiskDetail() {
                   <Label htmlFor="control-framework">Framework</Label>
                   <Select
                     value={controlFrameworkId}
-                    onValueChange={(v) => v && setControlFrameworkId(v)}
+                    onValueChange={(value) => {
+                      if (!value) return;
+                      setControlFrameworkId(value);
+                      setFrameworkControlId("");
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select framework" />
                     </SelectTrigger>
                     <SelectContent>
-                      {frameworks?.map((framework) => (
-                        <SelectItem key={framework.id} value={framework.id}>
-                          {framework.name}
+                      {frameworkOptions.map((framework) => (
+                        <SelectItem
+                          key={framework.frameworkId}
+                          value={framework.frameworkId}
+                        >
+                          {framework.frameworkName}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="control-ref">Control Reference</Label>
-                  <Input
-                    id="control-ref"
-                    value={controlRef}
-                    onChange={(e) => setControlRef(e.target.value)}
-                    placeholder="e.g., A.12.1.1"
-                  />
+                  <Label htmlFor="framework-control">Control</Label>
+                  <Select
+                    value={frameworkControlId}
+                    onValueChange={(value) =>
+                      setFrameworkControlId(value ?? "")
+                    }
+                  >
+                    <SelectTrigger id="framework-control">
+                      <SelectValue placeholder="Select a control" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {selectableControls.map((control) => (
+                        <SelectItem key={control.id} value={control.id}>
+                          {control.control_ref} · {control.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="grid gap-2">
@@ -724,7 +862,10 @@ function RiskDetail() {
                   key={control.id}
                   className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-800 rounded-full text-sm font-medium group"
                 >
-                  <span>{control.framework_name}: {control.control_ref}</span>
+                  <span>
+                    {control.framework_name}: {control.control_ref} ·{" "}
+                    {control.control_title}
+                  </span>
                   <button
                     onClick={() => handleDeleteControl(control)}
                     disabled={unlinkControl.isPending}
@@ -747,7 +888,8 @@ function RiskDetail() {
           ) : (
             !isAddingControl && (
               <div className="text-center text-muted-foreground py-8">
-                No controls mapped. Click "Link Control" to add a compliance mapping.
+                No controls mapped. Click "Link Control" to add a compliance
+                mapping.
               </div>
             )
           )}
@@ -783,29 +925,36 @@ function RiskDetail() {
                       <div
                         className={cn(
                           "w-3 h-3 rounded-full",
-                          actionColorMap[log.action]
+                          actionColorMap[log.action],
                         )}
                       />
                       {!isLast && <div className="w-px flex-1 bg-border" />}
                     </div>
                     <div className={cn("pb-4", isLast && "pb-0")}>
                       <p className="text-sm">
-                        <span className="font-medium">{log.user_name || "Unknown"}</span>
-                        {" "}
+                        <span className="font-medium">
+                          {log.user_name || "Unknown"}
+                        </span>{" "}
                         {log.action === "created" && "created this risk"}
                         {log.action === "updated" && "updated this risk"}
                         {log.action === "deleted" && "deleted this risk"}
                       </p>
                       {log.action === "updated" && log.changes && (
                         <ul className="mt-1 text-sm text-muted-foreground">
-                          {Object.entries(log.changes).map(([field, change]) => {
-                            const changeObj = change as { from?: unknown; to?: unknown } | undefined;
-                            return (
-                              <li key={field}>
-                                {field}: &quot;{String(changeObj?.from ?? "")}&quot; &rarr; &quot;{String(changeObj?.to ?? "")}&quot;
-                              </li>
-                            );
-                          })}
+                          {Object.entries(log.changes).map(
+                            ([field, change]) => {
+                              const changeObj = change as
+                                | { from?: unknown; to?: unknown }
+                                | undefined;
+                              return (
+                                <li key={field}>
+                                  {field}: &quot;{String(changeObj?.from ?? "")}
+                                  &quot; &rarr; &quot;
+                                  {String(changeObj?.to ?? "")}&quot;
+                                </li>
+                              );
+                            },
+                          )}
                         </ul>
                       )}
                       <p className="text-xs text-muted-foreground mt-1">

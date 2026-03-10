@@ -1,4 +1,10 @@
-import { Link, Outlet, createFileRoute, useNavigate, useLocation } from "@tanstack/react-router";
+import {
+  Link,
+  Outlet,
+  createFileRoute,
+  useNavigate,
+  useLocation,
+} from "@tanstack/react-router";
 import * as React from "react";
 import {
   BarChart3Icon,
@@ -6,6 +12,7 @@ import {
   FolderIcon,
   LayoutGridIcon,
   LineChartIcon,
+  ListChecksIcon,
   LogOut,
   ShieldCheckIcon,
   ShieldIcon,
@@ -52,6 +59,7 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
   { to: "/app/board", label: "Board", icon: LayoutGridIcon },
   { to: "/app/calendar", label: "Calendar", icon: CalendarIcon },
   { to: "/app/frameworks", label: "Frameworks", icon: ShieldCheckIcon },
+  { to: "/app/controls", label: "Controls", icon: ListChecksIcon },
   { to: "/app/categories", label: "Categories", icon: FolderIcon },
 ];
 
@@ -104,6 +112,7 @@ function AppLayoutContent({ user, logout }: { user: any; logout: () => void }) {
     if (pathname.startsWith("/app/calendar")) return "Calendar";
     if (pathname.startsWith("/app/risks")) return "Risks";
     if (pathname.startsWith("/app/frameworks")) return "Frameworks";
+    if (pathname.startsWith("/app/controls")) return "Controls";
     if (pathname.startsWith("/app/categories")) return "Categories";
     return "Risk Register";
   };
@@ -115,13 +124,20 @@ function AppLayoutContent({ user, logout }: { user: any; logout: () => void }) {
       {/* Fixed Sidebar */}
       <Sidebar className="border-r">
         <SidebarHeader>
-          <div className={cn("flex w-full items-center", collapsed ? "justify-center" : "justify-between")}>
+          <div
+            className={cn(
+              "flex w-full items-center",
+              collapsed ? "justify-center" : "justify-between",
+            )}
+          >
             <Link to="/app" className="flex items-center gap-2.5">
               <span className="bg-primary text-primary-foreground inline-flex size-8 items-center justify-center rounded-lg shadow-sm">
                 <ShieldCheckIcon className="size-4" />
               </span>
               {!collapsed && (
-                <span className="text-sm font-semibold tracking-tight">Risk Register</span>
+                <span className="text-sm font-semibold tracking-tight">
+                  Risk Register
+                </span>
               )}
             </Link>
             {/* Only show collapse trigger in sidebar header when expanded */}
@@ -135,10 +151,17 @@ function AppLayoutContent({ user, logout }: { user: any; logout: () => void }) {
             <SidebarMenu>
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.to}>
-                  <SidebarMenuButton asChild isActive={false} tooltip={item.label}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={false}
+                    tooltip={item.label}
+                  >
                     <Link
                       to={item.to}
-                      activeProps={{ className: "bg-sidebar-accent text-sidebar-accent-foreground" }}
+                      activeProps={{
+                        className:
+                          "bg-sidebar-accent text-sidebar-accent-foreground",
+                      }}
                       inactiveProps={{
                         className:
                           "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
@@ -156,10 +179,24 @@ function AppLayoutContent({ user, logout }: { user: any; logout: () => void }) {
         </SidebarContent>
 
         <SidebarFooter>
-          <div className={cn("flex w-full flex-col gap-3", collapsed && "items-center")}>
+          <div
+            className={cn(
+              "flex w-full flex-col gap-3",
+              collapsed && "items-center",
+            )}
+          >
             {/* Theme Toggle */}
-            <div className={cn("flex items-center", collapsed ? "justify-center" : "justify-between")}>
-              {!collapsed && <span className="text-xs text-sidebar-foreground/50">Theme</span>}
+            <div
+              className={cn(
+                "flex items-center",
+                collapsed ? "justify-center" : "justify-between",
+              )}
+            >
+              {!collapsed && (
+                <span className="text-xs text-sidebar-foreground/50">
+                  Theme
+                </span>
+              )}
               <ThemeToggle />
             </div>
 
@@ -173,7 +210,9 @@ function AppLayoutContent({ user, logout }: { user: any; logout: () => void }) {
               {!collapsed && (
                 <div className="flex flex-col">
                   <span className="text-sm font-medium">{user?.name}</span>
-                  <span className="text-xs text-sidebar-foreground/50 capitalize">{user?.role}</span>
+                  <span className="text-xs text-sidebar-foreground/50 capitalize">
+                    {user?.role}
+                  </span>
                 </div>
               )}
               <Button
@@ -181,17 +220,20 @@ function AppLayoutContent({ user, logout }: { user: any; logout: () => void }) {
                 size={collapsed ? "icon-sm" : "sm"}
                 onClick={logout}
                 title="Log out"
-                className={cn(
-                  "shrink-0",
-                  collapsed && "size-8"
-                )}
+                className={cn("shrink-0", collapsed && "size-8")}
               >
                 {collapsed ? <LogOut className="size-4" /> : "Log out"}
               </Button>
             </div>
 
             {/* Mobile Close */}
-            <div className={cn("flex items-center", collapsed ? "justify-center" : "justify-end", "md:hidden")}>
+            <div
+              className={cn(
+                "flex items-center",
+                collapsed ? "justify-center" : "justify-end",
+                "md:hidden",
+              )}
+            >
               <SidebarCloseButton />
             </div>
           </div>

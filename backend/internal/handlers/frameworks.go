@@ -1,8 +1,9 @@
 package handlers
 
 import (
+	"errors"
+
 	"backend/internal/database"
-	"backend/internal/middleware"
 	"backend/internal/models"
 
 	"github.com/gofiber/fiber/v2"
@@ -10,13 +11,11 @@ import (
 
 type FrameworkHandler struct {
 	frameworkRepo database.FrameworkRepository
-	controlRepo   database.RiskFrameworkControlRepository
 }
 
-func NewFrameworkHandler(frameworkRepo database.FrameworkRepository, controlRepo database.RiskFrameworkControlRepository) *FrameworkHandler {
+func NewFrameworkHandler(frameworkRepo database.FrameworkRepository) *FrameworkHandler {
 	return &FrameworkHandler{
 		frameworkRepo: frameworkRepo,
-		controlRepo:   controlRepo,
 	}
 }
 
@@ -69,7 +68,7 @@ func (h *FrameworkHandler) Update(c *fiber.Ctx) error {
 
 	framework, err := h.frameworkRepo.Update(c.Context(), id, &input)
 	if err != nil {
-		if err == database.ErrFrameworkNotFound {
+		if errors.Is(err, database.ErrFrameworkNotFound) {
 			return c.Status(404).JSON(fiber.Map{"error": "framework not found"})
 		}
 		return c.Status(500).JSON(fiber.Map{"error": "failed to update framework"})
@@ -85,7 +84,7 @@ func (h *FrameworkHandler) Delete(c *fiber.Ctx) error {
 	}
 
 	if err := h.frameworkRepo.Delete(c.Context(), id); err != nil {
-		if err == database.ErrFrameworkNotFound {
+		if errors.Is(err, database.ErrFrameworkNotFound) {
 			return c.Status(404).JSON(fiber.Map{"error": "framework not found"})
 		}
 		return c.Status(500).JSON(fiber.Map{"error": "failed to delete framework"})
@@ -93,72 +92,12 @@ func (h *FrameworkHandler) Delete(c *fiber.Ctx) error {
 	return c.SendStatus(204)
 }
 
-type ControlHandler struct {
-	controlRepo database.RiskFrameworkControlRepository
-}
-
-func NewControlHandler(controlRepo database.RiskFrameworkControlRepository) *ControlHandler {
-	return &ControlHandler{controlRepo: controlRepo}
-}
-
-// ListControls returns all controls linked to a risk
-func (h *ControlHandler) ListControls(c *fiber.Ctx) error {
-	riskID := c.Params("riskId")
-	if riskID == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "risk_id required"})
+func mapFrameworkControlError(c *fiber.Ctx, err error, defaultMessage string) error {
+	if errors.Is(err, database.ErrFrameworkControlNotFound) {
+		return c.Status(404).JSON(fiber.Map{"error": "control not found"})
 	}
-
-	controls, err := h.controlRepo.ListByRiskID(c.Context(), riskID)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "failed to fetch controls"})
+	if errors.Is(err, database.ErrFrameworkControlInUse) {
+		return c.Status(409).JSON(fiber.Map{"error": "control is linked to one or more risks"})
 	}
-	return c.JSON(fiber.Map{"data": controls})
-}
-
-// LinkControl links a framework control to a risk
-func (h *ControlHandler) LinkControl(c *fiber.Ctx) error {
-	user := middleware.GetUserFromContext(c)
-	if user == nil {
-		return c.Status(401).JSON(fiber.Map{"error": "unauthorized"})
-	}
-
-	riskID := c.Params("riskId")
-	if riskID == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "risk_id required"})
-	}
-
-	var input models.LinkControlInput
-	if err := c.BodyParser(&input); err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "invalid request body"})
-	}
-
-	// Validate required fields
-	if input.FrameworkID == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "framework_id is required"})
-	}
-	if input.ControlRef == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "control_ref is required"})
-	}
-
-	control, err := h.controlRepo.LinkControl(c.Context(), riskID, &input, user.UserID)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "failed to link control"})
-	}
-	return c.Status(201).JSON(control)
-}
-
-// UnlinkControl removes a control from a risk
-func (h *ControlHandler) UnlinkControl(c *fiber.Ctx) error {
-	controlID := c.Params("id")
-	if controlID == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "control_id required"})
-	}
-
-	if err := h.controlRepo.UnlinkControl(c.Context(), controlID); err != nil {
-		if err == database.ErrFrameworkNotFound {
-			return c.Status(404).JSON(fiber.Map{"error": "control not found"})
-		}
-		return c.Status(500).JSON(fiber.Map{"error": "failed to unlink control"})
-	}
-	return c.SendStatus(204)
+	return c.Status(500).JSON(fiber.Map{"error": defaultMessage})
 }

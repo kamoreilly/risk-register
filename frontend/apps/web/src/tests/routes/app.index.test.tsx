@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../utils';
 
 // Mock the API module
@@ -31,8 +31,6 @@ vi.mock('@/hooks/useDashboard', () => ({
     error: null,
   }),
 }));
-
-import { api } from '@/lib/api';
 
 describe('Dashboard Page', () => {
   beforeEach(() => {

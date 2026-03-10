@@ -13,25 +13,27 @@ import (
 
 type FiberServer struct {
 	*fiber.App
-	db                database.Service
-	rawDB             *sql.DB
-	users             database.UserRepository
-	risks             database.RiskRepository
-	categories        database.CategoryRepository
-	mitigations       database.MitigationRepository
-	frameworks        database.FrameworkRepository
-	controls          database.RiskFrameworkControlRepository
-	audit             database.AuditLogRepository
-	auth              *handlers.AuthHandler
-	riskHandler       *handlers.RiskHandler
-	categoryHandler   *handlers.CategoryHandler
-	mitigationHandler *handlers.MitigationHandler
-	frameworkHandler  *handlers.FrameworkHandler
-	controlHandler    *handlers.ControlHandler
-	dashboardHandler  *handlers.DashboardHandler
-	analyticsHandler  *handlers.AnalyticsHandler
-	aiHandler         *handlers.AIHandler
-	auditHandler      *handlers.AuditHandler
+	db                      database.Service
+	rawDB                   *sql.DB
+	users                   database.UserRepository
+	risks                   database.RiskRepository
+	categories              database.CategoryRepository
+	mitigations             database.MitigationRepository
+	frameworks              database.FrameworkRepository
+	frameworkControls       database.FrameworkControlRepository
+	controls                database.RiskFrameworkControlRepository
+	audit                   database.AuditLogRepository
+	auth                    *handlers.AuthHandler
+	riskHandler             *handlers.RiskHandler
+	categoryHandler         *handlers.CategoryHandler
+	mitigationHandler       *handlers.MitigationHandler
+	frameworkHandler        *handlers.FrameworkHandler
+	frameworkControlHandler *handlers.FrameworkControlHandler
+	controlHandler          *handlers.ControlHandler
+	dashboardHandler        *handlers.DashboardHandler
+	analyticsHandler        *handlers.AnalyticsHandler
+	aiHandler               *handlers.AIHandler
+	auditHandler            *handlers.AuditHandler
 }
 
 func New() *FiberServer {
@@ -42,6 +44,7 @@ func New() *FiberServer {
 	categories := database.NewCategoryRepository(rawDB)
 	mitigations := database.NewMitigationRepository(rawDB)
 	frameworks := database.NewFrameworkRepository(rawDB)
+	frameworkControls := database.NewFrameworkControlRepository(rawDB)
 	controls := database.NewRiskFrameworkControlRepository(rawDB)
 	audit := database.NewAuditLogRepository(rawDB)
 	dashboard := database.NewDashboardRepository(rawDB)
@@ -52,25 +55,27 @@ func New() *FiberServer {
 			ServerHeader: "risk-register",
 			AppName:      "Risk Register API",
 		}),
-		db:                db,
-		rawDB:             rawDB,
-		users:             users,
-		risks:             risks,
-		categories:        categories,
-		mitigations:       mitigations,
-		frameworks:        frameworks,
-		controls:          controls,
-		audit:             audit,
-		auth:              handlers.NewAuthHandler(users),
-		riskHandler:       handlers.NewRiskHandler(risks, categories, audit),
-		categoryHandler:   handlers.NewCategoryHandler(categories),
-		mitigationHandler: handlers.NewMitigationHandler(mitigations),
-		frameworkHandler:  handlers.NewFrameworkHandler(frameworks, controls),
-		controlHandler:    handlers.NewControlHandler(controls),
-		dashboardHandler:  handlers.NewDashboardHandler(dashboard),
-		analyticsHandler:  handlers.NewAnalyticsHandler(analytics),
-		aiHandler:         handlers.NewAIHandler(),
-		auditHandler:      handlers.NewAuditHandler(audit),
+		db:                      db,
+		rawDB:                   rawDB,
+		users:                   users,
+		risks:                   risks,
+		categories:              categories,
+		mitigations:             mitigations,
+		frameworks:              frameworks,
+		frameworkControls:       frameworkControls,
+		controls:                controls,
+		audit:                   audit,
+		auth:                    handlers.NewAuthHandler(users),
+		riskHandler:             handlers.NewRiskHandler(risks, categories, audit),
+		categoryHandler:         handlers.NewCategoryHandler(categories),
+		mitigationHandler:       handlers.NewMitigationHandler(mitigations),
+		frameworkHandler:        handlers.NewFrameworkHandler(frameworks),
+		frameworkControlHandler: handlers.NewFrameworkControlHandler(frameworkControls),
+		controlHandler:          handlers.NewControlHandler(controls),
+		dashboardHandler:        handlers.NewDashboardHandler(dashboard),
+		analyticsHandler:        handlers.NewAnalyticsHandler(analytics),
+		aiHandler:               handlers.NewAIHandler(),
+		auditHandler:            handlers.NewAuditHandler(audit),
 	}
 
 	return server

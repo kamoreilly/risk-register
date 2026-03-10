@@ -15,6 +15,7 @@ import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app/index'
 import { Route as AppFrameworksRouteImport } from './routes/app/frameworks'
+import { Route as AppControlsRouteImport } from './routes/app/controls'
 import { Route as AppCategoriesRouteImport } from './routes/app/categories'
 import { Route as AppCalendarRouteImport } from './routes/app/calendar'
 import { Route as AppBoardRouteImport } from './routes/app/board'
@@ -51,6 +52,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const AppFrameworksRoute = AppFrameworksRouteImport.update({
   id: '/frameworks',
   path: '/frameworks',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppControlsRoute = AppControlsRouteImport.update({
+  id: '/controls',
+  path: '/controls',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppCategoriesRoute = AppCategoriesRouteImport.update({
@@ -98,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/app/board': typeof AppBoardRoute
   '/app/calendar': typeof AppCalendarRoute
   '/app/categories': typeof AppCategoriesRoute
+  '/app/controls': typeof AppControlsRoute
   '/app/frameworks': typeof AppFrameworksRoute
   '/app/': typeof AppIndexRoute
   '/app/risks/$id': typeof AppRisksIdRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByTo {
   '/app/board': typeof AppBoardRoute
   '/app/calendar': typeof AppCalendarRoute
   '/app/categories': typeof AppCategoriesRoute
+  '/app/controls': typeof AppControlsRoute
   '/app/frameworks': typeof AppFrameworksRoute
   '/app': typeof AppIndexRoute
   '/app/risks/$id': typeof AppRisksIdRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/app/board': typeof AppBoardRoute
   '/app/calendar': typeof AppCalendarRoute
   '/app/categories': typeof AppCategoriesRoute
+  '/app/controls': typeof AppControlsRoute
   '/app/frameworks': typeof AppFrameworksRoute
   '/app/': typeof AppIndexRoute
   '/app/risks/$id': typeof AppRisksIdRoute
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/app/board'
     | '/app/calendar'
     | '/app/categories'
+    | '/app/controls'
     | '/app/frameworks'
     | '/app/'
     | '/app/risks/$id'
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/app/board'
     | '/app/calendar'
     | '/app/categories'
+    | '/app/controls'
     | '/app/frameworks'
     | '/app'
     | '/app/risks/$id'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/app/board'
     | '/app/calendar'
     | '/app/categories'
+    | '/app/controls'
     | '/app/frameworks'
     | '/app/'
     | '/app/risks/$id'
@@ -230,6 +242,13 @@ declare module '@tanstack/react-router' {
       path: '/frameworks'
       fullPath: '/app/frameworks'
       preLoaderRoute: typeof AppFrameworksRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/controls': {
+      id: '/app/controls'
+      path: '/controls'
+      fullPath: '/app/controls'
+      preLoaderRoute: typeof AppControlsRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/app/categories': {
@@ -289,6 +308,7 @@ interface AppRouteRouteChildren {
   AppBoardRoute: typeof AppBoardRoute
   AppCalendarRoute: typeof AppCalendarRoute
   AppCategoriesRoute: typeof AppCategoriesRoute
+  AppControlsRoute: typeof AppControlsRoute
   AppFrameworksRoute: typeof AppFrameworksRoute
   AppIndexRoute: typeof AppIndexRoute
   AppRisksIdRoute: typeof AppRisksIdRoute
@@ -301,6 +321,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppBoardRoute: AppBoardRoute,
   AppCalendarRoute: AppCalendarRoute,
   AppCategoriesRoute: AppCategoriesRoute,
+  AppControlsRoute: AppControlsRoute,
   AppFrameworksRoute: AppFrameworksRoute,
   AppIndexRoute: AppIndexRoute,
   AppRisksIdRoute: AppRisksIdRoute,
