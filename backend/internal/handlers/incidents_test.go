@@ -386,11 +386,7 @@ func TestIncidentHandler_Create(t *testing.T) {
 			setupCategories: func(repo *mockIncidentCategoryRepo) {
 				// Category doesn't exist
 			},
-			// Note: The current handler implementation has a bug where validateCategoryInput
-			// returns nil even when sending a 400 response (because c.JSON() returns nil on success).
-			// This test documents the current behavior. The handler should be fixed to properly
-			// propagate the validation error.
-			expectedStatus: 201, // BUG: Should be 400
+			expectedStatus: 400,
 			checkResponse:  nil,
 			checkAuditLog:  false,
 		},

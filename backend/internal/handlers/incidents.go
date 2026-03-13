@@ -41,6 +41,9 @@ func (h *IncidentHandler) normalizeCategoryID(categoryID *string) *string {
 }
 
 // validateCategoryInput validates that the category exists if provided
+// Returns ErrInvalidCategory if the category doesn't exist
+var ErrInvalidCategory = errors.New("invalid category_id")
+
 func (h *IncidentHandler) validateCategoryInput(c *fiber.Ctx, categoryID *string) error {
 	if categoryID == nil {
 		return nil
@@ -48,7 +51,7 @@ func (h *IncidentHandler) validateCategoryInput(c *fiber.Ctx, categoryID *string
 
 	cat, err := h.incidentCategories.FindByID(c.Context(), *categoryID)
 	if err != nil || cat == nil {
-		return c.Status(400).JSON(fiber.Map{"error": "invalid category_id"})
+		return ErrInvalidCategory
 	}
 	return nil
 }
@@ -121,6 +124,9 @@ func (h *IncidentHandler) Create(c *fiber.Ctx) error {
 
 	// Validate category input
 	if err := h.validateCategoryInput(c, categoryID); err != nil {
+		if errors.Is(err, ErrInvalidCategory) {
+			return c.Status(400).JSON(fiber.Map{"error": "invalid category_id"})
+		}
 		return err
 	}
 
@@ -243,6 +249,9 @@ func (h *IncidentHandler) Update(c *fiber.Ctx) error {
 			changes["category_id"] = map[string]any{"from": oldCategoryID, "to": nil}
 		} else {
 			if err := h.validateCategoryInput(c, normalizedCategoryID); err != nil {
+				if errors.Is(err, ErrInvalidCategory) {
+					return c.Status(400).JSON(fiber.Map{"error": "invalid category_id"})
+				}
 				return err
 			}
 			incident.CategoryID = normalizedCategoryID
