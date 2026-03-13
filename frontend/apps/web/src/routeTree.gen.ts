@@ -21,8 +21,11 @@ import { Route as AppCalendarRouteImport } from './routes/app/calendar'
 import { Route as AppBoardRouteImport } from './routes/app/board'
 import { Route as AppAnalyticsRouteImport } from './routes/app/analytics'
 import { Route as AppRisksIndexRouteImport } from './routes/app/risks/index'
+import { Route as AppIncidentsIndexRouteImport } from './routes/app/incidents/index'
 import { Route as AppRisksNewRouteImport } from './routes/app/risks/new'
 import { Route as AppRisksIdRouteImport } from './routes/app/risks/$id'
+import { Route as AppIncidentsNewRouteImport } from './routes/app/incidents/new'
+import { Route as AppIncidentsIdRouteImport } from './routes/app/incidents/$id'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -84,6 +87,11 @@ const AppRisksIndexRoute = AppRisksIndexRouteImport.update({
   path: '/risks/',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppIncidentsIndexRoute = AppIncidentsIndexRouteImport.update({
+  id: '/incidents/',
+  path: '/incidents/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppRisksNewRoute = AppRisksNewRouteImport.update({
   id: '/risks/new',
   path: '/risks/new',
@@ -92,6 +100,16 @@ const AppRisksNewRoute = AppRisksNewRouteImport.update({
 const AppRisksIdRoute = AppRisksIdRouteImport.update({
   id: '/risks/$id',
   path: '/risks/$id',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppIncidentsNewRoute = AppIncidentsNewRouteImport.update({
+  id: '/incidents/new',
+  path: '/incidents/new',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppIncidentsIdRoute = AppIncidentsIdRouteImport.update({
+  id: '/incidents/$id',
+  path: '/incidents/$id',
   getParentRoute: () => AppRouteRoute,
 } as any)
 
@@ -107,8 +125,11 @@ export interface FileRoutesByFullPath {
   '/app/controls': typeof AppControlsRoute
   '/app/frameworks': typeof AppFrameworksRoute
   '/app/': typeof AppIndexRoute
+  '/app/incidents/$id': typeof AppIncidentsIdRoute
+  '/app/incidents/new': typeof AppIncidentsNewRoute
   '/app/risks/$id': typeof AppRisksIdRoute
   '/app/risks/new': typeof AppRisksNewRoute
+  '/app/incidents/': typeof AppIncidentsIndexRoute
   '/app/risks/': typeof AppRisksIndexRoute
 }
 export interface FileRoutesByTo {
@@ -122,8 +143,11 @@ export interface FileRoutesByTo {
   '/app/controls': typeof AppControlsRoute
   '/app/frameworks': typeof AppFrameworksRoute
   '/app': typeof AppIndexRoute
+  '/app/incidents/$id': typeof AppIncidentsIdRoute
+  '/app/incidents/new': typeof AppIncidentsNewRoute
   '/app/risks/$id': typeof AppRisksIdRoute
   '/app/risks/new': typeof AppRisksNewRoute
+  '/app/incidents': typeof AppIncidentsIndexRoute
   '/app/risks': typeof AppRisksIndexRoute
 }
 export interface FileRoutesById {
@@ -139,8 +163,11 @@ export interface FileRoutesById {
   '/app/controls': typeof AppControlsRoute
   '/app/frameworks': typeof AppFrameworksRoute
   '/app/': typeof AppIndexRoute
+  '/app/incidents/$id': typeof AppIncidentsIdRoute
+  '/app/incidents/new': typeof AppIncidentsNewRoute
   '/app/risks/$id': typeof AppRisksIdRoute
   '/app/risks/new': typeof AppRisksNewRoute
+  '/app/incidents/': typeof AppIncidentsIndexRoute
   '/app/risks/': typeof AppRisksIndexRoute
 }
 export interface FileRouteTypes {
@@ -157,8 +184,11 @@ export interface FileRouteTypes {
     | '/app/controls'
     | '/app/frameworks'
     | '/app/'
+    | '/app/incidents/$id'
+    | '/app/incidents/new'
     | '/app/risks/$id'
     | '/app/risks/new'
+    | '/app/incidents/'
     | '/app/risks/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -172,8 +202,11 @@ export interface FileRouteTypes {
     | '/app/controls'
     | '/app/frameworks'
     | '/app'
+    | '/app/incidents/$id'
+    | '/app/incidents/new'
     | '/app/risks/$id'
     | '/app/risks/new'
+    | '/app/incidents'
     | '/app/risks'
   id:
     | '__root__'
@@ -188,8 +221,11 @@ export interface FileRouteTypes {
     | '/app/controls'
     | '/app/frameworks'
     | '/app/'
+    | '/app/incidents/$id'
+    | '/app/incidents/new'
     | '/app/risks/$id'
     | '/app/risks/new'
+    | '/app/incidents/'
     | '/app/risks/'
   fileRoutesById: FileRoutesById
 }
@@ -286,6 +322,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRisksIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/incidents/': {
+      id: '/app/incidents/'
+      path: '/incidents'
+      fullPath: '/app/incidents/'
+      preLoaderRoute: typeof AppIncidentsIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/app/risks/new': {
       id: '/app/risks/new'
       path: '/risks/new'
@@ -300,6 +343,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRisksIdRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/incidents/new': {
+      id: '/app/incidents/new'
+      path: '/incidents/new'
+      fullPath: '/app/incidents/new'
+      preLoaderRoute: typeof AppIncidentsNewRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/incidents/$id': {
+      id: '/app/incidents/$id'
+      path: '/incidents/$id'
+      fullPath: '/app/incidents/$id'
+      preLoaderRoute: typeof AppIncidentsIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
   }
 }
 
@@ -311,8 +368,11 @@ interface AppRouteRouteChildren {
   AppControlsRoute: typeof AppControlsRoute
   AppFrameworksRoute: typeof AppFrameworksRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppIncidentsIdRoute: typeof AppIncidentsIdRoute
+  AppIncidentsNewRoute: typeof AppIncidentsNewRoute
   AppRisksIdRoute: typeof AppRisksIdRoute
   AppRisksNewRoute: typeof AppRisksNewRoute
+  AppIncidentsIndexRoute: typeof AppIncidentsIndexRoute
   AppRisksIndexRoute: typeof AppRisksIndexRoute
 }
 
@@ -324,8 +384,11 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppControlsRoute: AppControlsRoute,
   AppFrameworksRoute: AppFrameworksRoute,
   AppIndexRoute: AppIndexRoute,
+  AppIncidentsIdRoute: AppIncidentsIdRoute,
+  AppIncidentsNewRoute: AppIncidentsNewRoute,
   AppRisksIdRoute: AppRisksIdRoute,
   AppRisksNewRoute: AppRisksNewRoute,
+  AppIncidentsIndexRoute: AppIncidentsIndexRoute,
   AppRisksIndexRoute: AppRisksIndexRoute,
 }
 

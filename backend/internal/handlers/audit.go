@@ -27,3 +27,17 @@ func (h *AuditHandler) ListByRisk(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{"data": logs})
 }
+
+func (h *AuditHandler) ListByIncident(c *fiber.Ctx) error {
+	incidentID := c.Params("incidentId")
+	if incidentID == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "incident_id required"})
+	}
+
+	logs, err := h.auditRepo.ListByEntity(c.Context(), "incident", incidentID, 50)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to fetch audit logs"})
+	}
+
+	return c.JSON(fiber.Map{"data": logs})
+}

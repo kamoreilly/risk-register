@@ -62,6 +62,8 @@ export interface UpdateIncidentInput {
   service_affected?: string;
   root_cause?: string;
   resolution_notes?: string;
+  occurred_at?: string;
+  detected_at?: string;
   resolved_at?: string;
 }
 

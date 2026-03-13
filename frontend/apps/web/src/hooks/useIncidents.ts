@@ -127,6 +127,18 @@ export function useUnlinkIncidentRisk(incidentId: string) {
   });
 }
 
+// Incident Audit Logs
+export function useIncidentAuditLogs(incidentId: string) {
+  return useQuery({
+    queryKey: ['incident-audit', incidentId],
+    queryFn: async () => {
+      const response = await api.get<{ data: import('@/types/audit').AuditLog[] }>(`/api/v1/incidents/${incidentId}/audit`);
+      return response.data;
+    },
+    enabled: !!incidentId,
+  });
+}
+
 // Helper to build query string
 function buildQueryString(params?: IncidentListParams): string {
   if (!params) return '';
