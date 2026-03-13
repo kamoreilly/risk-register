@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import * as React from "react";
 import {
+  AlertTriangleIcon,
   BarChart3Icon,
   CalendarIcon,
   FolderIcon,
@@ -56,6 +57,7 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
   { to: "/app", label: "Dashboard", icon: BarChart3Icon, exact: true },
   { to: "/app/analytics", label: "Analytics", icon: LineChartIcon },
   { to: "/app/risks", label: "Risks", icon: ShieldIcon },
+  { to: "/app/incidents", label: "Incidents", icon: AlertTriangleIcon },
   { to: "/app/board", label: "Board", icon: LayoutGridIcon },
   { to: "/app/calendar", label: "Calendar", icon: CalendarIcon },
   { to: "/app/frameworks", label: "Frameworks", icon: ShieldCheckIcon },
@@ -67,6 +69,7 @@ const MEMBER_NAV_ITEMS: NavItem[] = [
   { to: "/app", label: "Dashboard", icon: BarChart3Icon, exact: true },
   { to: "/app/analytics", label: "Analytics", icon: LineChartIcon },
   { to: "/app/risks", label: "Risks", icon: ShieldIcon },
+  { to: "/app/incidents", label: "Incidents", icon: AlertTriangleIcon },
   { to: "/app/board", label: "Board", icon: LayoutGridIcon },
   { to: "/app/calendar", label: "Calendar", icon: CalendarIcon },
 ];
@@ -111,6 +114,7 @@ function AppLayoutContent({ user, logout }: { user: any; logout: () => void }) {
     if (pathname.startsWith("/app/board")) return "Board";
     if (pathname.startsWith("/app/calendar")) return "Calendar";
     if (pathname.startsWith("/app/risks")) return "Risks";
+    if (pathname.startsWith("/app/incidents")) return "Incidents";
     if (pathname.startsWith("/app/frameworks")) return "Frameworks";
     if (pathname.startsWith("/app/controls")) return "Controls";
     if (pathname.startsWith("/app/categories")) return "Categories";

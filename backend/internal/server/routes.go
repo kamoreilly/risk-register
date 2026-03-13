@@ -83,6 +83,29 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	ai := protected.Group("/ai")
 	ai.Post("/summarize", s.aiHandler.Summarize)
 	ai.Post("/draft-mitigation", s.aiHandler.DraftMitigation)
+
+	// Incident category routes (admin only)
+	incidentCategories := protected.Group("/incident-categories")
+	incidentCategories.Get("/", s.incidentCategoryHandler.List)
+	incidentCategories.Post("/", middleware.RequireAdmin, s.incidentCategoryHandler.Create)
+	incidentCategories.Put("/:id", middleware.RequireAdmin, s.incidentCategoryHandler.Update)
+	incidentCategories.Delete("/:id", middleware.RequireAdmin, s.incidentCategoryHandler.Delete)
+
+	// Incident routes
+	incidents := protected.Group("/incidents")
+	incidents.Get("/", s.incidentHandler.List)
+	incidents.Post("/", middleware.RequireResponder, s.incidentHandler.Create)
+	incidents.Get("/:id", s.incidentHandler.Get)
+	incidents.Put("/:id", middleware.RequireResponder, s.incidentHandler.Update)
+	incidents.Delete("/:id", middleware.RequireAdmin, s.incidentHandler.Delete)
+
+	// Nested risk routes under a specific incident
+	incidents.Get("/:incidentId/risks", s.incidentRiskHandler.ListRisks)
+	incidents.Post("/:incidentId/risks", middleware.RequireResponder, s.incidentRiskHandler.LinkRisk)
+	incidents.Delete("/:incidentId/risks/:riskId", middleware.RequireResponder, s.incidentRiskHandler.UnlinkRisk)
+
+	// Audit log routes for incidents
+	incidents.Get("/:incidentId/audit", s.auditHandler.ListByIncident)
 }
 
 func (s *FiberServer) HelloWorldHandler(c *fiber.Ctx) error {

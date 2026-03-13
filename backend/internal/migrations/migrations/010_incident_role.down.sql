@@ -1,0 +1,9 @@
+-- Remove responder role from user_role enum
+-- Note: PostgreSQL does not support removing enum values directly.
+-- To rollback, you would need to:
+-- 1. Create a new enum without 'responder'
+-- 2. Alter the users table to use the new enum
+-- 3. Drop the old enum
+-- 4. Rename the new enum to user_role
+-- This is a destructive operation that could cause data loss if any users have the responder role.
+-- For safety, this down migration is intentionally left minimal.

@@ -23,6 +23,9 @@ type FiberServer struct {
 	frameworkControls       database.FrameworkControlRepository
 	controls                database.RiskFrameworkControlRepository
 	audit                   database.AuditLogRepository
+	incidents               database.IncidentRepository
+	incidentCategories      database.IncidentCategoryRepository
+	incidentRisks           database.IncidentRiskRepository
 	auth                    *handlers.AuthHandler
 	riskHandler             *handlers.RiskHandler
 	categoryHandler         *handlers.CategoryHandler
@@ -34,6 +37,9 @@ type FiberServer struct {
 	analyticsHandler        *handlers.AnalyticsHandler
 	aiHandler               *handlers.AIHandler
 	auditHandler            *handlers.AuditHandler
+	incidentHandler         *handlers.IncidentHandler
+	incidentCategoryHandler *handlers.IncidentCategoryHandler
+	incidentRiskHandler     *handlers.IncidentRiskHandler
 }
 
 func New() *FiberServer {
@@ -49,6 +55,9 @@ func New() *FiberServer {
 	audit := database.NewAuditLogRepository(rawDB)
 	dashboard := database.NewDashboardRepository(rawDB)
 	analytics := database.NewAnalyticsRepository(rawDB)
+	incidents := database.NewIncidentRepository(rawDB)
+	incidentCategories := database.NewIncidentCategoryRepository(rawDB)
+	incidentRisks := database.NewIncidentRiskRepository(rawDB)
 
 	server := &FiberServer{
 		App: fiber.New(fiber.Config{
@@ -65,6 +74,9 @@ func New() *FiberServer {
 		frameworkControls:       frameworkControls,
 		controls:                controls,
 		audit:                   audit,
+		incidents:               incidents,
+		incidentCategories:      incidentCategories,
+		incidentRisks:           incidentRisks,
 		auth:                    handlers.NewAuthHandler(users),
 		riskHandler:             handlers.NewRiskHandler(risks, categories, audit),
 		categoryHandler:         handlers.NewCategoryHandler(categories),
@@ -76,6 +88,9 @@ func New() *FiberServer {
 		analyticsHandler:        handlers.NewAnalyticsHandler(analytics),
 		aiHandler:               handlers.NewAIHandler(),
 		auditHandler:            handlers.NewAuditHandler(audit),
+		incidentHandler:         handlers.NewIncidentHandler(incidents, incidentCategories, incidentRisks, audit),
+		incidentCategoryHandler: handlers.NewIncidentCategoryHandler(incidentCategories),
+		incidentRiskHandler:     handlers.NewIncidentRiskHandler(incidentRisks, audit),
 	}
 
 	return server

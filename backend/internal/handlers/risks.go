@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"errors"
+	"time"
+
 	"backend/internal/database"
 	"backend/internal/middleware"
 	"backend/internal/models"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -23,6 +25,9 @@ func (h *RiskHandler) normalizeCategoryID(categoryID *string) *string {
 	return categoryID
 }
 
+// ErrInvalidRiskCategory is returned when the category doesn't exist
+var ErrInvalidRiskCategory = errors.New("invalid category_id")
+
 // validateCategoryInput validates that the category exists if provided
 func (h *RiskHandler) validateCategoryInput(c *fiber.Ctx, categoryID *string) error {
 	if categoryID == nil {
@@ -31,7 +36,7 @@ func (h *RiskHandler) validateCategoryInput(c *fiber.Ctx, categoryID *string) er
 
 	cat, err := h.categories.FindByID(c.Context(), *categoryID)
 	if err != nil || cat == nil {
-		return c.Status(400).JSON(fiber.Map{"error": "invalid category_id"})
+		return ErrInvalidRiskCategory
 	}
 	return nil
 }
@@ -108,6 +113,9 @@ func (h *RiskHandler) Create(c *fiber.Ctx) error {
 
 	// Validate category input (only if categoryID is not nil after normalization)
 	if err := h.validateCategoryInput(c, categoryID); err != nil {
+		if errors.Is(err, ErrInvalidRiskCategory) {
+			return c.Status(400).JSON(fiber.Map{"error": "invalid category_id"})
+		}
 		return err
 	}
 
@@ -210,6 +218,9 @@ func (h *RiskHandler) Update(c *fiber.Ctx) error {
 		} else {
 			// Validate category input before applying
 			if err := h.validateCategoryInput(c, normalizedCategoryID); err != nil {
+				if errors.Is(err, ErrInvalidRiskCategory) {
+					return c.Status(400).JSON(fiber.Map{"error": "invalid category_id"})
+				}
 				return err
 			}
 			risk.CategoryID = normalizedCategoryID

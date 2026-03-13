@@ -66,3 +66,19 @@ func RequireAdmin(c *fiber.Ctx) error {
 	}
 	return c.Next()
 }
+
+// RequireResponder checks if the user has responder privileges (admin or responder role)
+func RequireResponder(c *fiber.Ctx) error {
+	user := GetUserFromContext(c)
+	if user == nil {
+		return c.Status(401).JSON(fiber.Map{
+			"error": "unauthorized",
+		})
+	}
+	if user.Role != "admin" && user.Role != "responder" {
+		return c.Status(403).JSON(fiber.Map{
+			"error": "responder access required",
+		})
+	}
+	return c.Next()
+}
