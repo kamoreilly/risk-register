@@ -113,3 +113,9 @@ func (s *service) Close() error {
 	log.Printf("Disconnected from database: %s", database)
 	return s.db.Close()
 }
+
+// GetDB returns the underlying *sql.DB for testing purposes.
+// This is primarily used by integration tests in other packages.
+func GetDB(svc Service) *sql.DB {
+	return svc.(*service).db
+}

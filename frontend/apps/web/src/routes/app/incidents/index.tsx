@@ -67,15 +67,26 @@ function IncidentsList() {
   const [status, setStatus] = React.useState<IncidentStatus | "">("");
   const [priority, setPriority] = React.useState<IncidentPriority | "">("");
   const [categoryId, setCategoryId] = React.useState<string>("");
-  const [search, setSearch] = React.useState("");
+  const [searchInput, setSearchInput] = React.useState("");
+  const [searchQuery, setSearchQuery] = React.useState("");
   const [page, setPage] = React.useState(1);
+
+  // Debounce search input (300ms delay)
+  React.useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setSearchQuery(searchInput);
+      setPage(1);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchInput]);
 
   const { data: categoriesData } = useIncidentCategories();
   const { data, isLoading } = useIncidents({
     status: status || undefined,
     priority: priority || undefined,
     category_id: categoryId || undefined,
-    search: search || undefined,
+    search: searchQuery || undefined,
     page,
     limit: 10,
   });
@@ -103,11 +114,8 @@ function IncidentsList() {
               <Label>Search</Label>
               <Input
                 placeholder="Search incidents..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
               />
             </div>
             <div className="grid gap-2">

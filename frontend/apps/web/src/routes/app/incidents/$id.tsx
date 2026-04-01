@@ -12,6 +12,7 @@ import {
   useIncidentAuditLogs,
 } from "@/hooks/useIncidents";
 import { useRisks } from "@/hooks/useRisks";
+import { useUsers } from "@/hooks/useUsers";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -67,6 +68,7 @@ function IncidentDetail() {
 
   const { data: incident, isLoading } = useIncident(id);
   const { data: categories } = useIncidentCategories();
+  const { data: users } = useUsers();
   const updateIncident = useUpdateIncident(id);
   const deleteIncident = useDeleteIncident();
 
@@ -85,6 +87,7 @@ function IncidentDetail() {
   const [status, setStatus] = React.useState<IncidentStatus>("new");
   const [priority, setPriority] = React.useState<IncidentPriority>("p3");
   const [categoryId, setCategoryId] = React.useState<string>("");
+  const [assigneeId, setAssigneeId] = React.useState<string>("");
   const [serviceAffected, setServiceAffected] = React.useState("");
   const [rootCause, setRootCause] = React.useState("");
   const [resolutionNotes, setResolutionNotes] = React.useState("");
@@ -102,6 +105,7 @@ function IncidentDetail() {
       setStatus(incident.status);
       setPriority(incident.priority);
       setCategoryId(incident.category_id || "");
+      setAssigneeId(incident.assignee_id || "");
       setServiceAffected(incident.service_affected || "");
       setRootCause(incident.root_cause || "");
       setResolutionNotes(incident.resolution_notes || "");
@@ -118,6 +122,7 @@ function IncidentDetail() {
         status,
         priority,
         category_id: categoryId || undefined,
+        assignee_id: assigneeId || undefined,
         service_affected: serviceAffected || undefined,
         root_cause: rootCause || undefined,
         resolution_notes: resolutionNotes || undefined,
@@ -335,6 +340,27 @@ function IncidentDetail() {
                   </Select>
                 </div>
                 <div className="grid gap-2">
+                  <Label>Assignee</Label>
+                  <Select
+                    value={assigneeId}
+                    onValueChange={(value) => setAssigneeId(value ?? "")}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select assignee" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Unassigned</SelectItem>
+                      {users?.map((user) => (
+                        <SelectItem key={user.id} value={user.id}>
+                          {user.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
                   <Label htmlFor="serviceAffected">Service Affected</Label>
                   <Input
                     id="serviceAffected"
@@ -342,6 +368,9 @@ function IncidentDetail() {
                     onChange={(e) => setServiceAffected(e.target.value)}
                     placeholder="e.g., API, Database, Frontend"
                   />
+                </div>
+                <div className="grid gap-2">
+                  {/* Empty placeholder for grid alignment */}
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">

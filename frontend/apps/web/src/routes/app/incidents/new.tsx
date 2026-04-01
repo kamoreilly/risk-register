@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import * as React from "react";
 
 import { useCreateIncident, useIncidentCategories } from "@/hooks/useIncidents";
+import { useUsers } from "@/hooks/useUsers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,12 +25,14 @@ function NewIncident() {
   const navigate = useNavigate();
   const createIncident = useCreateIncident();
   const { data: categories } = useIncidentCategories();
+  const { data: users } = useUsers();
 
   const [title, setTitle] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [priority, setPriority] = React.useState<IncidentPriority>("p3");
   const [status, setStatus] = React.useState<IncidentStatus>("new");
   const [categoryId, setCategoryId] = React.useState<string>("");
+  const [assigneeId, setAssigneeId] = React.useState<string>("");
   const [serviceAffected, setServiceAffected] = React.useState("");
   const [occurredAt, setOccurredAt] = React.useState("");
   const [detectedAt, setDetectedAt] = React.useState("");
@@ -49,6 +52,7 @@ function NewIncident() {
         priority,
         status,
         category_id: categoryId || undefined,
+        assignee_id: assigneeId || undefined,
         service_affected: serviceAffected || undefined,
         occurred_at: occurredAt || undefined,
         detected_at: detectedAt || undefined,
@@ -161,6 +165,28 @@ function NewIncident() {
               </div>
 
               <div className="grid gap-2">
+                <Label>Assignee</Label>
+                <Select
+                  value={assigneeId}
+                  onValueChange={(value) => setAssigneeId(value ?? "")}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select assignee" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Unassigned</SelectItem>
+                    {users?.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
                 <Label htmlFor="serviceAffected">Service Affected</Label>
                 <Input
                   id="serviceAffected"
@@ -168,6 +194,10 @@ function NewIncident() {
                   onChange={(e) => setServiceAffected(e.target.value)}
                   placeholder="e.g., API, Database, Frontend"
                 />
+              </div>
+
+              <div className="grid gap-2">
+                {/* Empty placeholder for grid alignment */}
               </div>
             </div>
 

@@ -301,15 +301,15 @@ func (h *IncidentHandler) Delete(c *fiber.Ctx) error {
 
 	user := middleware.GetUserFromContext(c)
 
-	// Log audit event before deletion
-	h.audit.Create(c.Context(), "incident", id, models.AuditActionDeleted, nil, user.UserID)
-
 	if err := h.incidents.Delete(c.Context(), id); err != nil {
 		if err == database.ErrIncidentNotFound {
 			return c.Status(404).JSON(fiber.Map{"error": "incident not found"})
 		}
 		return c.Status(500).JSON(fiber.Map{"error": "failed to delete incident"})
 	}
+
+	// Log audit event after successful deletion
+	h.audit.Create(c.Context(), "incident", id, models.AuditActionDeleted, nil, user.UserID)
 
 	return c.SendStatus(204)
 }
