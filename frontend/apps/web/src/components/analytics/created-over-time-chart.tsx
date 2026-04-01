@@ -35,14 +35,14 @@ export function CreatedOverTimeChart({ data }: CreatedOverTimeChartProps) {
       </CardHeader>
       <CardContent>
         {data.length === 0 ? (
-          <div className="flex h-[200px] items-center justify-center text-muted-foreground">
-            No data available
+          <div className="flex h-[200px] items-center justify-center text-muted-foreground italic text-sm">
+            No data available for this period
           </div>
         ) : (
-          <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+          <ChartContainer config={chartConfig} className="h-[200px] w-full">
             <AreaChart
               data={data}
-              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
             >
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis
