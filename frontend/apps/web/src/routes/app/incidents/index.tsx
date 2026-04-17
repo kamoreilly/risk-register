@@ -19,27 +19,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import type { IncidentStatus, IncidentPriority } from "@/types/incident";
+import { INCIDENT_STATUS_COLORS, INCIDENT_PRIORITY_COLORS } from "@/lib/constants";
+import type { IncidentPriority } from "@/types/incident";
 
 export const Route = createFileRoute("/app/incidents/")({
   component: IncidentsList,
 });
-
-const STATUS_COLORS: Record<IncidentStatus, string> = {
-  new: "bg-green-100 text-green-800",
-  acknowledged: "bg-yellow-100 text-yellow-800",
-  in_progress: "bg-blue-100 text-blue-800",
-  on_hold: "bg-gray-100 text-gray-800",
-  resolved: "bg-emerald-100 text-emerald-800",
-  closed: "bg-slate-100 text-slate-800",
-};
-
-const PRIORITY_COLORS: Record<IncidentPriority, string> = {
-  p1: "bg-red-100 text-red-800",
-  p2: "bg-orange-100 text-orange-800",
-  p3: "bg-blue-100 text-blue-800",
-  p4: "bg-gray-100 text-gray-800",
-};
 
 const PRIORITY_LABELS: Record<IncidentPriority, string> = {
   p1: "P1",
@@ -221,7 +206,7 @@ function IncidentsList() {
                       <span
                         className={cn(
                           "px-2 py-1 rounded text-xs font-bold",
-                          PRIORITY_COLORS[incident.priority]
+                          INCIDENT_PRIORITY_COLORS[incident.priority]
                         )}
                       >
                         {PRIORITY_LABELS[incident.priority]}
@@ -240,7 +225,7 @@ function IncidentsList() {
                       <span
                         className={cn(
                           "px-2 py-1 rounded text-xs font-medium",
-                          STATUS_COLORS[incident.status]
+                          INCIDENT_STATUS_COLORS[incident.status]
                         )}
                       >
                         {incident.status.replace("_", " ")}

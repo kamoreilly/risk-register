@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api } from "@/lib/api";
+import { buildQueryString } from "@/lib/utils";
 import type {
   ControlLinkedRisk,
   CreateFrameworkControlInput,
@@ -20,28 +21,14 @@ interface ControlsFilters {
 }
 
 function buildControlsPath(filters: ControlsFilters = {}) {
-  const params = new URLSearchParams();
-
-  if (filters.frameworkId) {
-    params.set("framework_id", filters.frameworkId);
-  }
-  if (filters.search) {
-    params.set("search", filters.search);
-  }
-
-  const query = params.toString();
-  return query ? `/api/v1/controls?${query}` : "/api/v1/controls";
+  const path = buildQueryString({ framework_id: filters.frameworkId, search: filters.search });
+  return `/api/v1/controls${path}`;
 }
 
 export function useControls(filters: ControlsFilters = {}) {
   return useQuery({
     queryKey: [CONTROLS_KEY, filters.frameworkId ?? "", filters.search ?? ""],
-    queryFn: async () => {
-      const response = await api.get<{ data: FrameworkControl[] }>(
-        buildControlsPath(filters),
-      );
-      return response.data;
-    },
+    queryFn: () => api.getAndUnwrap<FrameworkControl[]>(buildControlsPath(filters)),
   });
 }
 
@@ -60,12 +47,7 @@ export function useCreateControl() {
 export function useControlLinkedRisks(controlId: string, enabled = true) {
   return useQuery({
     queryKey: [CONTROL_LINKED_RISKS_KEY, controlId],
-    queryFn: async () => {
-      const response = await api.get<{ data: ControlLinkedRisk[] }>(
-        `/api/v1/controls/${controlId}/risks`,
-      );
-      return response.data;
-    },
+    queryFn: () => api.getAndUnwrap<ControlLinkedRisk[]>(`/api/v1/controls/${controlId}/risks`),
     enabled: enabled && !!controlId,
   });
 }

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
+import { buildQueryString } from '@/lib/utils';
 import type {
   IncidentCategory,
   CreateIncidentInput,
@@ -137,24 +138,4 @@ export function useIncidentAuditLogs(incidentId: string) {
     },
     enabled: !!incidentId,
   });
-}
-
-// Helper to build query string
-function buildQueryString(params?: IncidentListParams): string {
-  if (!params) return '';
-
-  const searchParams = new URLSearchParams();
-
-  if (params.status) searchParams.set('status', params.status);
-  if (params.priority) searchParams.set('priority', params.priority);
-  if (params.category_id) searchParams.set('category_id', params.category_id);
-  if (params.assignee_id) searchParams.set('assignee_id', params.assignee_id);
-  if (params.search) searchParams.set('search', params.search);
-  if (params.sort) searchParams.set('sort', params.sort);
-  if (params.order) searchParams.set('order', params.order);
-  if (params.page) searchParams.set('page', String(params.page));
-  if (params.limit) searchParams.set('limit', String(params.limit));
-
-  const queryString = searchParams.toString();
-  return queryString ? `?${queryString}` : '';
 }

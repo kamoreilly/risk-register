@@ -19,25 +19,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { RISK_STATUS_COLORS, RISK_SEVERITY_COLORS } from "@/lib/constants";
 import type { RiskStatus, RiskSeverity } from "@/types/risk";
 
 export const Route = createFileRoute("/app/risks/")({
   component: RisksList,
 });
-
-const STATUS_COLORS: Record<RiskStatus, string> = {
-  open: "bg-yellow-100 text-yellow-800",
-  mitigating: "bg-blue-100 text-blue-800",
-  resolved: "bg-green-100 text-green-800",
-  accepted: "bg-gray-100 text-gray-800",
-};
-
-const SEVERITY_COLORS: Record<RiskSeverity, string> = {
-  low: "bg-gray-100 text-gray-800",
-  medium: "bg-yellow-100 text-yellow-800",
-  high: "bg-orange-100 text-orange-800",
-  critical: "bg-red-100 text-red-800",
-};
 
 function RisksList() {
   const [status, setStatus] = React.useState<RiskStatus | "">("");
@@ -147,12 +134,12 @@ function RisksList() {
                       </Link>
                     </td>
                     <td className="p-4">
-                      <span className={cn("px-2 py-1 rounded text-xs font-medium", STATUS_COLORS[risk.status])}>
+                      <span className={cn("px-2 py-1 rounded text-xs font-medium", RISK_STATUS_COLORS[risk.status])}>
                         {risk.status}
                       </span>
                     </td>
                     <td className="p-4">
-                      <span className={cn("px-2 py-1 rounded text-xs font-medium", SEVERITY_COLORS[risk.severity])}>
+                      <span className={cn("px-2 py-1 rounded text-xs font-medium", RISK_SEVERITY_COLORS[risk.severity])}>
                         {risk.severity}
                       </span>
                     </td>

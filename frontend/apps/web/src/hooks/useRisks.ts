@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
+import { buildQueryString } from '@/lib/utils';
 import { DASHBOARD_KEY } from './useDashboard';
 import type {
   Category,
@@ -134,22 +135,4 @@ export function useUpdateRiskStatus() {
   });
 }
 
-// Helper to build query string from params
-function buildQueryString(params?: RiskListParams): string {
-  if (!params) return '';
 
-  const searchParams = new URLSearchParams();
-
-  if (params.status) searchParams.set('status', params.status);
-  if (params.severity) searchParams.set('severity', params.severity);
-  if (params.category_id) searchParams.set('category_id', params.category_id);
-  if (params.owner_id) searchParams.set('owner_id', params.owner_id);
-  if (params.search) searchParams.set('search', params.search);
-  if (params.sort) searchParams.set('sort', params.sort);
-  if (params.order) searchParams.set('order', params.order);
-  if (params.page) searchParams.set('page', String(params.page));
-  if (params.limit) searchParams.set('limit', String(params.limit));
-
-  const queryString = searchParams.toString();
-  return queryString ? `?${queryString}` : '';
-}

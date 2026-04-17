@@ -1,5 +1,12 @@
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
+export const DEFAULT_STALE_TIME = 5 * 60 * 1000;
+export const LONG_STALE_TIME = 10 * 60 * 1000;
+
+interface ApiResponse<T> {
+  data: T;
+}
+
 interface ApiOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
   body?: unknown;
@@ -58,6 +65,11 @@ class ApiClient {
 
   delete<T>(path: string, token?: string): Promise<T> {
     return this.request<T>(path, { method: 'DELETE', token });
+  }
+
+  async getAndUnwrap<T>(path: string, token?: string): Promise<T> {
+    const response = await this.get<ApiResponse<T>>(path, token);
+    return response.data;
   }
 }
 
