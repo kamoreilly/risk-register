@@ -1,6 +1,9 @@
 # AI/Agent files
 AGENTS.md
 CLAUDE.md
+.claude/
+.kilo/
+openspec/
 
 # Environment variables
 .env
