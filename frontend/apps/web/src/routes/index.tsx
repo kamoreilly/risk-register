@@ -1,14 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import * as React from "react";
 import {
-  BotIcon,
-  BrainCircuitIcon,
-  CalendarClockIcon,
-  FingerprintIcon,
+  AlertTriangleIcon,
+  CalendarIcon,
+  LayoutGridIcon,
   LineChartIcon,
-  SearchIcon,
-  SparklesIcon,
-  WorkflowIcon,
+  ListChecksIcon,
+  ShieldCheckIcon,
+  ShieldIcon,
 } from "lucide-react";
 
 import { HeaderNav } from "@/components/header-nav";
@@ -30,34 +29,34 @@ function HomeComponent() {
     () =>
       [
         {
-          icon: BrainCircuitIcon,
-          title: "AI summaries",
-          description: "Turn updates into a review-ready brief.",
+          icon: ShieldIcon,
+          title: "Risk register",
+          description: "Log, assess, and assign owners to every risk.",
         },
         {
-          icon: WorkflowIcon,
-          title: "Smart triage",
-          description: "Group changes by owner, severity, and status.",
+          icon: LayoutGridIcon,
+          title: "Kanban board",
+          description: "Visualize risk status from open to resolved.",
         },
         {
-          icon: CalendarClockIcon,
-          title: "Cadence tracking",
-          description: "Keep review dates visible and actionable.",
+          icon: CalendarIcon,
+          title: "Review calendar",
+          description: "Schedule and track due dates for every risk.",
         },
         {
-          icon: SearchIcon,
-          title: "Fast lookup",
-          description: "Find risks instantly with keyboard-first search.",
+          icon: LineChartIcon,
+          title: "Analytics",
+          description: "Monitor trends, severity, and team performance.",
         },
         {
-          icon: FingerprintIcon,
-          title: "Audit-friendly",
-          description: "Owners and decisions stay attributable.",
+          icon: AlertTriangleIcon,
+          title: "Incidents",
+          description: "Track incidents with P1–P3 priority levels.",
         },
         {
-          icon: BotIcon,
-          title: "Assistive prompts",
-          description: "Draft mitigations and next steps in context.",
+          icon: ListChecksIcon,
+          title: "Controls",
+          description: "Define controls and map them to frameworks.",
         },
       ] as const,
     [],
@@ -75,25 +74,25 @@ function HomeComponent() {
                 <div className="grid gap-6 text-center lg:text-left">
                   <div className="inline-flex w-fit items-center gap-2 rounded-full border bg-muted/40 px-3 py-1 text-xs text-muted-foreground mx-auto lg:mx-0">
                     <span className="size-1.5 rounded-full bg-emerald-500" />
-                    <span>Live view</span>
+                    <span>Risk management</span>
                   </div>
 
                   <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
-                    Risk register, focused on what changes
+                    Risk Register — identify, track, resolve
                   </h1>
                   <p className="max-w-[600px] text-pretty text-base leading-7 text-muted-foreground sm:text-lg mx-auto lg:mx-0">
-                    Capture owners, severity, and review cadence in one view. Track risks, monitor trends, and maintain accountability across your organization.
+                    Log risks, assign owners, and schedule reviews. Visualize on a kanban board, track incidents, and monitor trends — all in one place.
                   </p>
 
                   <div className="flex flex-wrap justify-center gap-3 lg:justify-start">
                     <Link to="/login">
-                      <Button size="lg" className="rounded-full px-8">Open</Button>
+                      <Button size="lg" className="rounded-full px-8">Get started</Button>
                     </Link>
                   </div>
 
                   <dl className="grid grid-cols-3 gap-4 pt-4">
                     <div className="rounded-2xl border bg-card/50 p-4">
-                      <dt className="text-xs font-medium text-muted-foreground">Open</dt>
+                      <dt className="text-xs font-medium text-muted-foreground">Open risks</dt>
                       <dd className="mt-1 text-2xl font-bold tracking-tight">124</dd>
                     </div>
                     <div className="rounded-2xl border bg-card/50 p-4">
@@ -101,7 +100,7 @@ function HomeComponent() {
                       <dd className="mt-1 text-2xl font-bold tracking-tight">42</dd>
                     </div>
                     <div className="rounded-2xl border bg-card/50 p-4">
-                      <dt className="text-xs font-medium text-muted-foreground">Reviews</dt>
+                      <dt className="text-xs font-medium text-muted-foreground">Upcoming reviews</dt>
                       <dd className="mt-1 text-2xl font-bold tracking-tight">8</dd>
                     </div>
                   </dl>
@@ -112,12 +111,12 @@ function HomeComponent() {
                   <Card className="overflow-hidden border-2 bg-card/50 backdrop-blur-sm sm:p-2">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6">
                       <div className="grid gap-1">
-                        <CardTitle className="text-xl font-bold">Advanced + AI</CardTitle>
-                        <CardDescription className="text-xs">Power features for faster reviews and tighter ownership.</CardDescription>
+                        <CardTitle className="text-xl font-bold">Risk Management Suite</CardTitle>
+                        <CardDescription className="text-xs">Everything you need to identify, track, and resolve risks.</CardDescription>
                       </div>
                       <div className="inline-flex items-center gap-1.5 rounded-full border bg-primary/10 px-3 py-1 text-xs font-medium text-primary shadow-sm">
-                        <SparklesIcon className="size-3.5 fill-current" />
-                        <span>AI-assisted</span>
+                        <ShieldCheckIcon className="size-3.5" />
+                        <span>Feature-rich</span>
                       </div>
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -141,9 +140,9 @@ function HomeComponent() {
                     <div className="mx-6 mb-6 mt-2 flex items-center justify-between rounded-xl border bg-muted/30 px-4 py-3">
                       <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                         <LineChartIcon className="size-4 text-primary" />
-                        <span>Change-focused signal, not noise</span>
+                        <span>From identification to resolution</span>
                       </div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Live view</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">All-in-one</span>
                     </div>
                   </Card>
                 </div>
@@ -153,7 +152,7 @@ function HomeComponent() {
               <div className="border-y bg-muted/30">
                 <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                   <p className="mb-4 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Compatible with industry standards
+                    Built-in framework support
                   </p>
                   <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
                     {[
@@ -187,7 +186,7 @@ function HomeComponent() {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6 lg:px-8">
           <div className="flex items-center gap-2">
             <div className="size-6 rounded bg-primary" />
-            <span className="text-sm font-bold tracking-tight">RiskRegister</span>
+            <span className="text-sm font-bold tracking-tight">Risk Register</span>
           </div>
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} Risk Register. All rights reserved.
