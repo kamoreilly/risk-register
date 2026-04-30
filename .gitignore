@@ -2,7 +2,7 @@
 AGENTS.md
 CLAUDE.md
 .claude/
-*.kilo/
+.kilo/
 openspec/
 
 # Environment variables
