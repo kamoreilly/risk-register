@@ -2,7 +2,7 @@
 AGENTS.md
 CLAUDE.md
 .claude/
-.kilo/
+*.kilo/
 openspec/
 
 # Environment variables
@@ -13,6 +13,7 @@ openspec/
 .idea/
 .vscode/
 *.swp
+*.turbo
 
 # OS
 .DS_Store
