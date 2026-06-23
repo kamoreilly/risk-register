@@ -90,20 +90,7 @@ function HomeComponent() {
                     </Link>
                   </div>
 
-                  <dl className="grid grid-cols-3 gap-4 pt-4">
-                    <div className="rounded-2xl border bg-card/50 p-4">
-                      <dt className="text-xs font-medium text-muted-foreground">Open risks</dt>
-                      <dd className="mt-1 text-2xl font-bold tracking-tight">124</dd>
-                    </div>
-                    <div className="rounded-2xl border bg-card/50 p-4">
-                      <dt className="text-xs font-medium text-muted-foreground">Mitigating</dt>
-                      <dd className="mt-1 text-2xl font-bold tracking-tight">42</dd>
-                    </div>
-                    <div className="rounded-2xl border bg-card/50 p-4">
-                      <dt className="text-xs font-medium text-muted-foreground">Upcoming reviews</dt>
-                      <dd className="mt-1 text-2xl font-bold tracking-tight">8</dd>
-                    </div>
-                  </dl>
+
                 </div>
 
                 <div className="relative">
